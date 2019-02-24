@@ -52,10 +52,11 @@ public class SolarSystem implements SolarSystemInterface {
 
     public ArrayList<SolarSystemBody> getBodies() {
         ArrayList<SolarSystemBody> bodies = new ArrayList<>();
-        bodies.add(getStar());
         for (int i = 0; i < planets.size(); i++) {
             bodies.add(planets.get(i));
         }
+        bodies.add(getStar());
+
         return bodies;
     }
 
@@ -95,9 +96,17 @@ public class SolarSystem implements SolarSystemInterface {
         System.out.println(solarSystem.getPlanets().get(0).getDistanceFromStar());*/
         //System.out.println(solarSystem.getPlanets().get(1).getHabitability());
 
-        for (int i = 0; i < solarSystem.getBodies().size(); i++) {
-            solarSystem.getBodies().get(i).start();
+        plot.addPoint(Color.yellow, 20, 0, 0);
+
+        for (int i = 0; i < solarSystem.getPlanets().size(); i++) {
+            solarSystem.getPlanets().get(i).start();
+            //solarSystem.getBodies().get(i).start();
+            /*try {
+                solarSystem.getBodies().get(i).join();
+            } catch (InterruptedException ie) {}*/
         }
+
+        //plot.clearThePlot();
 
     }
 
