@@ -98,6 +98,11 @@ public class Star extends SolarSystemBody {
 
         while (true/*time <= timeLimitatomicBoolean.get()*/) {
             plot.addPoint(this.color, 20, 0, 0);
+            try {
+                synchronized(this) {
+                    this.wait();
+                }
+            } catch (InterruptedException ie) {}
             //time += dt;
         }
 

@@ -81,7 +81,7 @@ public class Planet extends SolarSystemBody {
      */
     public void orbit() {
 
-        double  dt = 100;
+        double  dt = 1000;
         double  timeLimit = 100000000;
         double time = 0;
 
@@ -136,6 +136,10 @@ public class Planet extends SolarSystemBody {
             v_x = -tangentialSpeed * Math.sin(theta);
 
             time += dt;
+
+            synchronized (star) {
+                star.notify();
+            }
 
         }
 

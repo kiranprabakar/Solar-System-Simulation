@@ -76,8 +76,8 @@ public class SolarSystem implements SolarSystemInterface {
                 solarSystem.getStar(), plot, plot.colors[0], 0, 1);
         Planet mars = new Planet("Mars", 6786604, 1.5 * 149.6 * Math.pow(10,9), 0.11 * 5.972 * Math.pow(10,24),
                 solarSystem.getStar(), plot, plot.colors[1],1.5, 0);
-        Planet earth2 = new Planet("Earth",12.742 * Math.pow(10,6), 149.6 * Math.pow(10,9), 5.972 * Math.pow(10,24),
-                solarSystem.getStar(), plot, plot.colors[0], 0, 1);
+        /*Planet earth2 = new Planet("Earth",12.742 * Math.pow(10,6), 149.6 * Math.pow(10,9), 5.972 * Math.pow(10,24),
+                solarSystem.getStar(), plot, plot.colors[0], 0, 1);*/
 
         //System.out.println(earth.equals(earth2));
 
@@ -96,15 +96,25 @@ public class SolarSystem implements SolarSystemInterface {
         System.out.println(solarSystem.getPlanets().get(0).getDistanceFromStar());*/
         //System.out.println(solarSystem.getPlanets().get(1).getHabitability());
 
-        plot.addPoint(Color.yellow, 20, 0, 0);
+        //plot.addPoint(Color.yellow, 10, 0, 0);  //for the star object
+                                                                // (need to figure out a way to make it so that
+                                                                //the star can run in ts own thread)
 
-        for (int i = 0; i < solarSystem.getPlanets().size(); i++) {
-            solarSystem.getPlanets().get(i).start();
+        for (int i = 0; i < solarSystem.getBodies().size(); i++) {
+            solarSystem.getBodies().get(i).start();
             //solarSystem.getBodies().get(i).start();
             /*try {
                 solarSystem.getBodies().get(i).join();
             } catch (InterruptedException ie) {}*/
         }
+
+        /*for (int i = 0; i < solarSystem.getPlanets().size(); i++) {
+            solarSystem.getPlanets().get(i).start();
+            //solarSystem.getBodies().get(i).start();
+            try {
+                solarSystem.getBodies().get(i).join();
+            } catch (InterruptedException ie) {}
+        }*/
 
         //plot.clearThePlot();
 
