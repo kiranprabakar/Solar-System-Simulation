@@ -79,26 +79,30 @@ public class Planet extends SolarSystemBody {
      *      r = distance from center pof central body to point on orbit (r = sqrt(x^2 + y^2))
      *
      */
-    public void orbit() {
+    public synchronized void orbit() {
 
-        double  dt = 100;
-        double  timeLimit = 100000000;
         double time = 0;
 
         double radiusDistance = this.getDistanceFromStar();
+        double distance = radiusDistance;
         double starMass = star.getMass();
 
         double x = initX * 1.496 * Math.pow(10,11);
         double y = initY * 1.496 * Math.pow(10,11);
         double theta = Math.atan(y / x);
 
-        final double acceleration = G * starMass / Math.pow(radiusDistance, 2);       //Acceleration constant (for now ...)
-        double a_y = acceleration * Math.cos(theta);
-        double a_x = -acceleration * Math.sin(theta);
+        double acceleration = G * starMass / Math.pow(radiusDistance, 2);       //Acceleration constant (for now ...)
+        double prevAcceleration;
+        /*double a_y = acceleration * Math.sin(theta);
+        double a_x = acceleration * Math.cos(theta);*/
+        double a_y = acceleration * Math.sin(theta);
+        double a_x = acceleration * Math.cos(theta);
 
-        final double tangentialSpeed = Math.sqrt(acceleration * radiusDistance);   //Tangenital velocity constant (for now ...)
-        double v_y = tangentialSpeed * Math.cos(theta);
-        double v_x = -tangentialSpeed * Math.sin(theta);
+        double velocity = Math.sqrt(acceleration * radiusDistance);
+
+        //double tangentialSpeed = Math.sqrt(acceleration * radiusDistance);   //Tangenital velocity constant (for now ...)
+        double v_y = velocity * Math.cos(theta);
+        double v_x = -velocity * Math.sin(theta);
 
         DecimalFormat df = new DecimalFormat("#0.0");
         //DecimalFormat df2 = new DecimalFormat("0.0000");
@@ -113,15 +117,54 @@ public class Planet extends SolarSystemBody {
             //plot.setColor(this.color);
             //plot.setPointSize(20/*getDiameter() / 1.496 / Math.pow(10,11)*/);
 
-            plot.addPoint(this.color, 10, x / 1.496 / Math.pow(10,11), y / 1.496 / Math.pow(10,11));
+            plot.addPoint(this.color, 10, x / AU, y / AU);
 
             //plot.setPointSize(3);
 
-            plot.addPoint(Color.black, 10, x / 1.496 / Math.pow(10,11), y / 1.496 / Math.pow(10,11));
+            plot.addPoint(Color.black, 10, x / AU, y / AU);
 
-            //plot.addPoint(Color.yellow, 3, x / 1.496 / Math.pow(10,11), y / 1.496 / Math.pow(10,11));
+            //plot.addPoint(Color.yellow, 3, x / AU, y / AU);
 
             //System.out.print("Name: " + retName() + "---Time: " + df.format(time) + "\tX: " + x + "\tY: " + y + "\n");
+
+
+            /*
+             * This is the Verlet Algorithm implementation
+             * Will likely come back to once threads are debugged
+             */
+            /*
+            x += v_x * dt + 0.5 * a_x * Math.pow(dt,2);
+            y += v_y * dt + 0.5 * a_y * Math.pow(dt,2);
+
+            v_x += 0.5 * a_x * dt;
+            v_y  += 0.5 * a_y * dt;
+
+            distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+            theta = Math.atan(y / x);
+
+            if (x < 0) {
+                theta += Math.PI;
+            }
+
+            prevAcceleration = acceleration;
+            acceleration = G * starMass / Math.pow(distance, 2);
+            a_y = acceleration * Math.sin(theta);
+            a_x = acceleration * Math.cos(theta);
+
+            if (x > 0 && y > 0) {
+                a_x = -a_x;
+                a_y = -a_y;
+            } else if (x > 0 && y < 0) {
+                a_x = -a_x;
+            } else if(x < 0 && y < 0) {
+
+            } else if (x < 0 && y > 0) {
+                a_y = -a_y;
+            }
+
+            v_x += 0.5 * (a_x + prevAcceleration * Math.cos(theta)) * dt;
+            v_y += 0.5 * (a_y + prevAcceleration * Math.sin(theta)) * dt;
+            */
 
             x += v_x * dt;
             y += v_y * dt;
@@ -132,10 +175,15 @@ public class Planet extends SolarSystemBody {
                 theta += Math.PI;
             }
 
-            v_y = tangentialSpeed * Math.cos(theta);
-            v_x = -tangentialSpeed * Math.sin(theta);
+            v_y = velocity * Math.cos(theta);
+            v_x = -velocity * Math.sin(theta);
+
 
             time += dt;
+
+            /*synchronized (star) {
+                star.notify();
+            }*/
 
         }
 

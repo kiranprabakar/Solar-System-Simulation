@@ -2,7 +2,7 @@
  * Lays the foundation for each body in the Solar System
  */
 
-public class SolarSystemBody extends Thread implements SolarSystemInterface {
+public class SolarSystemBody implements SolarSystemInterface, Runnable {
 
     private double diameter;
     private String type;
@@ -57,6 +57,10 @@ public class SolarSystemBody extends Thread implements SolarSystemInterface {
     public boolean equals(SolarSystemBody other) {
         return other.getType().equals(getType()) && other.getDiameter() == getDiameter()
                 && other.getDistanceFromStar() == getDistanceFromStar() && other.getMass() == getMass();
+    }
+
+    public void run() {
+
     }
 
 }
