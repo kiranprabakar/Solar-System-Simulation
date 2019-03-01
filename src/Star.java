@@ -88,18 +88,12 @@ public class Star extends SolarSystemBody {
 
     public void run() {
 
-        //atomicBoolean.set(true);
-
-
         double time = 0;
 
         while (time <= timeLimit) {
             plot.addPoint(this.color, 20, 0, 0);
             time += dt;
         }
-
-        //plot.addPoint(Color.black, 20, 0, 0);
-        //System.out.println(getName() + " is done! Time: " + time);
 
     }
 }
