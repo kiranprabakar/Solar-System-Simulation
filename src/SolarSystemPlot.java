@@ -1,7 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 
-public class SolarSystemPlot extends Canvas {
+public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
 
     private int plotWidth = 800;			// width of plot in pixels
     private int plotHeight = 800;			// height of plot in pixels
@@ -102,7 +102,11 @@ public class SolarSystemPlot extends Canvas {
         }
         lastx = pixelx; lasty = pixely;
         firstPoint = false;
-        repaint();		// tell Java that our paint method needs to be called
+        // tell Java that our paint method needs to be called
+    }
+
+    public synchronized void repaint() {
+        super.repaint();
     }
 
     /** Changes the size of the plotted points (newSize in pixels). */
@@ -165,7 +169,7 @@ public class SolarSystemPlot extends Canvas {
 
         firstPoint = true;
 
-        repaint();
+        //repaint();
     }
 
 }

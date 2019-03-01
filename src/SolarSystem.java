@@ -65,8 +65,8 @@ public class SolarSystem implements SolarSystemInterface {
 
         SolarSystem solarSystem = new SolarSystem();
 
-        SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -2, 2,
-                -2, 2);
+        SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -5, 5,
+                -5, 5);
 
         try {
             solarSystem.addStar(new Star("Sun",1.391016 * Math.pow(10,9), 1.989 * Math.pow(10,30), 4.83, "G", plot, Color.yellow));
@@ -80,30 +80,14 @@ public class SolarSystem implements SolarSystemInterface {
         Planet mercury = new Planet("Mercury",4877922, 0.39 * 149.6 * Math.pow(10,9), 3.285 * Math.pow(10,23),
                 solarSystem.getStar(), plot, plot.colors[5], 0.39, 0);
 
-        //System.out.println(earth.equals(earth2));
-
         try {
             solarSystem.addPlanet(earth);
-            /*try {
-                gate.await();
-            } catch (Exception e) {}*/
             solarSystem.addPlanet(mercury);
             solarSystem.addPlanet(mars);
-            /*try {
-                gate.await();
-            } catch (Exception e) {}*/
         } catch (SolarSystemException ss) {
             System.out.println("Planet with the same characteristics already added!");
             exit(1);
         }
-
-        //final CyclicBarrier gate = new CyclicBarrier(1 + solarSystem.getPlanets().size());
-
-        /*System.out.println(solarSystem.getStar().getHabitableZoneUpperBound());
-        System.out.println(solarSystem.getStar().getHabitableZoneLowerBound());
-
-        System.out.println(solarSystem.getPlanets().get(0).getDistanceFromStar());*/
-        //System.out.println(solarSystem.getPlanets().get(1).getHabitability());
 
         class SolarThreadFactory implements ThreadFactory {
 
@@ -126,25 +110,6 @@ public class SolarSystem implements SolarSystemInterface {
         }
 
         executorService.shutdown();
-
-        /*for (int i = 0; i < solarSystem.getPlanets().size(); i++) {
-            //solarSystem.getBodies().get(i).start();
-            solarSystem.getPlanets().get(i).run();
-        }*/
-
-        /*try {
-            gate.await();
-        } catch (Exception e) {}*/
-
-        /*for (int i = 0; i < solarSystem.getPlanets().size(); i++) {
-            solarSystem.getPlanets().get(i).start();
-            //solarSystem.getBodies().get(i).start();
-            try {
-                solarSystem.getBodies().get(i).join();
-            } catch (InterruptedException ie) {}
-        }*/
-
-        //plot.clearThePlot();
 
     }
 

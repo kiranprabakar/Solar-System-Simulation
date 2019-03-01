@@ -12,6 +12,6 @@ public interface SolarSystemInterface {
     double AU = 1.496 * Math.pow(10,11);
     CyclicBarrier gate = new CyclicBarrier(3);
 
-    double  dt = 1000;
+    double  dt = 100;
     double  timeLimit = 100000000;
 }

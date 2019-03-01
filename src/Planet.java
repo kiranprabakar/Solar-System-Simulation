@@ -72,12 +72,13 @@ public class Planet extends SolarSystemBody {
      * Possibilities for improvement:
      *     Range-Kutta (Improved Euler) to solve this
      *     Midpoint method to solve this (refer to simulation manual)
-     *  Will need to imlement an error checker for the sake of full orbits
+     *  Will need to implement an error checker for the sake of full orbits
      *
-     *  Can use vis viva equation (AAE 251) v^2 = GM(2 / r - 1 / a)
+     *  Can use vis viva equation (AAE 251) v^2  = GM(2 / r - 1 / a)
      *      a = semi-major axis
      *      r = distance from center pof central body to point on orbit (r = sqrt(x^2 + y^2))
      *
+     *  Might use Verlet Algorithm instead of vis viva
      */
     public synchronized void orbit() {
 
@@ -89,6 +90,10 @@ public class Planet extends SolarSystemBody {
 
         double x = initX * 1.496 * Math.pow(10,11);
         double y = initY * 1.496 * Math.pow(10,11);
+
+        double prevX = x;
+        double prevY = y;
+
         double theta = Math.atan(y / x);
 
         double acceleration = G * starMass / Math.pow(radiusDistance, 2);       //Acceleration constant (for now ...)
@@ -107,30 +112,43 @@ public class Planet extends SolarSystemBody {
         DecimalFormat df = new DecimalFormat("#0.0");
         //DecimalFormat df2 = new DecimalFormat("0.0000");
 
+        boolean removePoint = false;
+
         //mv^2/r = GmM/r^2
         while (time <= timeLimit) {
 
-            //System.out.print("Time: " + df.format(time) + "\tX: " + x + "\tY: " + y + "\tTheta: " + df2.format(theta) + "\tCheck: " + (v_x < 0) + "\n");
-
-           // plot.addPoint(Color.black, x / 1.496 / Math.pow(10,11), y / 1.496 / Math.pow(10,11));
-
-            //plot.setColor(this.color);
-            //plot.setPointSize(20/*getDiameter() / 1.496 / Math.pow(10,11)*/);
-
             plot.addPoint(this.color, 10, x / AU, y / AU);
 
-            //plot.setPointSize(3);
+            if (removePoint) {
+                plot.addPoint(Color.black, 10, prevX / AU, prevY / AU);
+                plot.repaint();
+                removePoint = false;
+            }
 
-            plot.addPoint(Color.black, 10, x / AU, y / AU);
+            if ((time / dt) % 2 == 0) {
+                prevX = x;
+                prevY = y;
+                removePoint = true;
+            }
 
-            //plot.addPoint(Color.yellow, 3, x / AU, y / AU);
+            x += v_x * dt;
+            y += v_y * dt;
 
-            //System.out.print("Name: " + retName() + "---Time: " + df.format(time) + "\tX: " + x + "\tY: " + y + "\n");
+            theta = Math.atan(y / x);
 
+            if (x < 0) {
+                theta += Math.PI;
+            }
+
+            v_y = velocity * Math.cos(theta);
+            v_x = -velocity * Math.sin(theta);
+
+
+            time += dt;
 
             /*
              * This is the Verlet Algorithm implementation
-             * Will likely come back to once threads are debugged
+             * Will likely come back to once threads and plotter are debugged
              */
             /*
             x += v_x * dt + 0.5 * a_x * Math.pow(dt,2);
@@ -166,28 +184,7 @@ public class Planet extends SolarSystemBody {
             v_y += 0.5 * (a_y + prevAcceleration * Math.sin(theta)) * dt;
             */
 
-            x += v_x * dt;
-            y += v_y * dt;
-
-            theta = Math.atan(y / x);
-
-            if (x < 0) {
-                theta += Math.PI;
-            }
-
-            v_y = velocity * Math.cos(theta);
-            v_x = -velocity * Math.sin(theta);
-
-
-            time += dt;
-
-            /*synchronized (star) {
-                star.notify();
-            }*/
-
         }
-
-        //atomicBoolean.set(false);
 
         System.out.println(retName() + " is done!");
 
