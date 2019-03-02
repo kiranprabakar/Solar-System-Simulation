@@ -125,7 +125,7 @@ public class Planet extends SolarSystemBody {
                 removePoint = false;
             }
 
-            if ((time / dt) % 2 == 0) {
+            if ((int)(time / dt) % 2 == 0) {
                 prevX = x;
                 prevY = y;
                 removePoint = true;

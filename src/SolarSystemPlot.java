@@ -31,6 +31,10 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
      */
     private Frame plotFrame;				// the window that will hold the plot
     private Panel controlPanel;				// panel with buttons (declared here so subclasses can add more buttons)
+
+    /*
+     * Off Screen Image and Graphics
+     */
     private Image offScreenImage;			// off-screen image where we draw
     private Graphics offScreenGraphics;		// graphics context for off-screen image
     /** Creates a new plot with specified title, ranges, and grid spacings. */
@@ -64,11 +68,11 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
         this.controlPanel = new Panel();						// create a panel to hold the buttons
         this.plotFrame.add(controlPanel,BorderLayout.NORTH);	// put it at the top of the window
         Button clearButton = new Button("Clear");		// create a button to clear the plot
-        clearButton.addActionListener(new ActionListener() {
+        /*clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { clearThePlot(); }
         });											// tell it what to do when the button is clicked
-        this.controlPanel.add(clearButton);					// note that southPanel has the default FlowLayout
-        this.plotFrame.setResizable(false);
+        this.controlPanel.add(clearButton);	*/				// note that southPanel has the default FlowLayout
+        this.plotFrame.setResizable(true);
         this.plotFrame.pack();								// make the frame just large enough to hold its components
         this.offScreenImage = createImage(plotWidth+1,plotHeight+1);	// create the off-screen image where we'll draw
 
@@ -100,10 +104,37 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
         if (connected && !firstPoint) {
             offScreenGraphics.drawLine(lastx,lasty,pixelx,pixely);
         }
-        lastx = pixelx; lasty = pixely;
+        lastx = pixelx;
+        lasty = pixely;
         firstPoint = false;
         // tell Java that our paint method needs to be called
+        //repaint();
     }
+
+    /*
+    public synchronized void removePoint(Color color, int pointSize, double X, double Y) {
+        offScreenGraphics.setColor(color);
+        setPointSize(pointSize);
+        int pixelx = (int) Math.round(plotWidth * (X-xMin) / xRange);	// convert x to a screen coordinate
+        int pixely = (int) Math.round(plotHeight * (yMax-Y) / yRange);	// remember that screen y is measured downward
+        int offset = (int) (pointSize/2.0);				// offset of top-left corner (rounded down)
+
+        if (pointShape == CIRCLE) {
+            offScreenGraphics.fillOval(pixelx-offset,pixely-offset,pointSize-1,pointSize-1);
+        } else {
+            offScreenGraphics.fillRect(pixelx-offset,pixely-offset,pointSize,pointSize);	// default is SQUARE
+        }
+
+        if (connected && !firstPoint) {
+            offScreenGraphics.drawLine(lastx,lasty,pixelx,pixely);
+        }
+        lastx = pixelx;
+        lasty = pixely;
+        firstPoint = false;
+        // tell Java that our paint method needs to be called
+        //repaint();
+    }
+    */
 
     public synchronized void repaint() {
         super.repaint();
@@ -161,8 +192,8 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
             gridY += yGridInterval;
         }*/
 
-        int xZero = (int) Math.round(-xMin * plotWidth / xRange);	// position of x=0 in pixel coordinates
-        int yZero = (int) Math.round(yMax * plotHeight / yRange);	// position of y=0 in pixel coordinates
+        //int xZero = (int) Math.round(-xMin * plotWidth / xRange);	// position of x=0 in pixel coordinates
+        //int yZero = (int) Math.round(yMax * plotHeight / yRange);	// position of y=0 in pixel coordinates
         /*offScreenGraphics.setColor(colors[3]);
         offScreenGraphics.drawLine(xZero,0,xZero,plotHeight);		// draw vertical axis
         offScreenGraphics.drawLine(0,yZero,plotWidth,yZero);*/		// draw horizontal axis
