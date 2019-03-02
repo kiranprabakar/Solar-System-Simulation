@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.concurrent.*;
-
 import static java.lang.System.exit;
 
 public class SolarSystem implements SolarSystemInterface {
@@ -60,6 +59,10 @@ public class SolarSystem implements SolarSystemInterface {
 
         return bodies;
     }
+
+    /*
+     * Probably need to look at Graphics2D vs Canvas for the plotting
+     */
 
     public static void main(String[] args) {
 
