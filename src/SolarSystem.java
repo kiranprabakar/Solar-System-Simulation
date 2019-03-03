@@ -76,6 +76,9 @@ public class SolarSystem implements SolarSystemInterface {
         }
         catch (SolarSystemException ss) { }
 
+        /*
+         * Only gonna worry about 1 planet for now while I debug this paint stuff
+         */
         Planet earth = new Planet("Earth",12.742 * Math.pow(10,6), 149.6 * Math.pow(10,9), 5.972 * Math.pow(10,24),
                 solarSystem.getStar(), plot, plot.colors[0], 0, 1);
         Planet mars = new Planet("Mars", 6786604, 1.5 * 149.6 * Math.pow(10,9), 0.11 * 5.972 * Math.pow(10,24),

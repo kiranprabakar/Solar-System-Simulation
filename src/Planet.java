@@ -94,6 +94,9 @@ public class Planet extends SolarSystemBody {
         double prevX = x;
         double prevY = y;
 
+        double prev2X = prevX;
+        double prev2Y = prevY;
+
         double theta = Math.atan(y / x);
 
         double acceleration = G * starMass / Math.pow(radiusDistance, 2);       //Acceleration constant (for now ...)
@@ -109,30 +112,17 @@ public class Planet extends SolarSystemBody {
         double v_y = velocity * Math.cos(theta);
         double v_x = -velocity * Math.sin(theta);
 
-        DecimalFormat df = new DecimalFormat("#0.0");
-        //DecimalFormat df2 = new DecimalFormat("0.0000");
+        DecimalFormat df2 = new DecimalFormat("0.0000");
 
         boolean removePoint = false;
+
+        int count = 0;
 
         //mv^2/r = GmM/r^2
         while (time <= timeLimit) {
 
-            plot.addPoint(this.color, 10, x / AU, y / AU);
-
-            if (removePoint) {
-                plot.addPoint(Color.black, 10, prevX / AU, prevY / AU);
-                plot.repaint();
-                removePoint = false;
-            }
-
-            if ((int)(time / dt) % 2 == 0) {
-                prevX = x;
-                prevY = y;
-                removePoint = true;
-            }
-
-            x += v_x * dt;
-            y += v_y * dt;
+            x += v_x * (dt / 100);
+            y += v_y * (dt / 100);
 
             theta = Math.atan(y / x);
 
@@ -143,8 +133,35 @@ public class Planet extends SolarSystemBody {
             v_y = velocity * Math.cos(theta);
             v_x = -velocity * Math.sin(theta);
 
-
             time += dt;
+
+            /*
+            if (time == dt * 2) {
+                removePoint = true;
+                prev2X = prevX;
+                prev2Y = prevY;
+            }
+            */
+
+            if (time % (dt * 1000000) == 0) {
+                plot.addPoint(Color.black, 10, prevX / AU, prevY / AU);
+                plot.addPoint(this.color, 10, x / AU, y / AU);
+                prevX = x;
+                prevY = y;
+                removePoint = true;
+                plot.repaint();
+                count++;
+            }
+
+
+            /*
+            if (removePoint) {
+                plot.addPoint(Color.black, 10, prev2X / AU, prev2Y / AU);
+                plot.repaint();
+                prev2X = prevX;
+                prev2Y = prevY;
+            }
+            */
 
             /*
              * This is the Verlet Algorithm implementation
@@ -186,7 +203,7 @@ public class Planet extends SolarSystemBody {
 
         }
 
-        System.out.println(retName() + " is done!");
+        System.out.println(retName() + " is done! Iterations: " + count);
 
     }
 
