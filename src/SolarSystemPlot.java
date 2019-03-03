@@ -67,7 +67,7 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
         // (+1 is so gridlines show when they're at edges)
         this.controlPanel = new Panel();						// create a panel to hold the buttons
         this.plotFrame.add(controlPanel,BorderLayout.NORTH);	// put it at the top of the window
-        Button clearButton = new Button("Clear");		// create a button to clear the plot
+        //Button clearButton = new Button("Clear");		// create a button to clear the plot
         /*clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { clearThePlot(); }
         });											// tell it what to do when the button is clicked
@@ -111,31 +111,6 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
         //repaint();
     }
 
-    /*
-    public synchronized void removePoint(Color color, int pointSize, double X, double Y) {
-        offScreenGraphics.setColor(color);
-        setPointSize(pointSize);
-        int pixelx = (int) Math.round(plotWidth * (X-xMin) / xRange);	// convert x to a screen coordinate
-        int pixely = (int) Math.round(plotHeight * (yMax-Y) / yRange);	// remember that screen y is measured downward
-        int offset = (int) (pointSize/2.0);				// offset of top-left corner (rounded down)
-
-        if (pointShape == CIRCLE) {
-            offScreenGraphics.fillOval(pixelx-offset,pixely-offset,pointSize-1,pointSize-1);
-        } else {
-            offScreenGraphics.fillRect(pixelx-offset,pixely-offset,pointSize,pointSize);	// default is SQUARE
-        }
-
-        if (connected && !firstPoint) {
-            offScreenGraphics.drawLine(lastx,lasty,pixelx,pixely);
-        }
-        lastx = pixelx;
-        lasty = pixely;
-        firstPoint = false;
-        // tell Java that our paint method needs to be called
-        //repaint();
-    }
-    */
-
     public synchronized void repaint() {
         super.repaint();
     }
@@ -166,7 +141,7 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
     }
 
     /** Override update to avoid redrawing background. */
-    public void update(Graphics g) {
+    public synchronized void update(Graphics g) {
         paint(g);
     }
 
@@ -174,33 +149,7 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
     public synchronized void clearThePlot() {
         offScreenGraphics.setColor(Color.black);       //Set to black
         offScreenGraphics.fillRect(0,0,plotWidth+1,plotHeight+1);	// paint the background white
-
-        //int gridPixel;										// screen coordinate for a grid line
-        //offScreenGraphics.setColor(colors[7]);		// grid lines will be light gray
-
-        /*double gridX = Math.ceil(xMin/xGridInterval) * xGridInterval;	// find x value of first vertical grid line
-        while (gridX <= xMax) {
-            gridPixel = (int) Math.round(plotWidth * (gridX-xMin) / xRange);	// convert gridX to screen coordinate
-            offScreenGraphics.drawLine(gridPixel,0,gridPixel,plotHeight);		// draw vertical grid line
-            gridX += xGridInterval;
-        }
-
-        double gridY = Math.ceil(yMin/yGridInterval) * yGridInterval;	// find y value of lowest horizontal grid line
-        while (gridY <= yMax) {
-            gridPixel = (int) Math.round(plotHeight * (yMax-gridY) / yRange);	// remember that screen y is measured downward
-            offScreenGraphics.drawLine(0,gridPixel,plotWidth,gridPixel);		// draw horizontal grid line
-            gridY += yGridInterval;
-        }*/
-
-        //int xZero = (int) Math.round(-xMin * plotWidth / xRange);	// position of x=0 in pixel coordinates
-        //int yZero = (int) Math.round(yMax * plotHeight / yRange);	// position of y=0 in pixel coordinates
-        /*offScreenGraphics.setColor(colors[3]);
-        offScreenGraphics.drawLine(xZero,0,xZero,plotHeight);		// draw vertical axis
-        offScreenGraphics.drawLine(0,yZero,plotWidth,yZero);*/		// draw horizontal axis
-
         firstPoint = true;
-
-        //repaint();
     }
 
 }
