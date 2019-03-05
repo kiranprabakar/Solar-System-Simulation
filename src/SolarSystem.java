@@ -1,38 +1,36 @@
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.*;
 import static java.lang.System.exit;
 
 public class SolarSystem implements SolarSystemInterface {
 
     private Star star;
-    private ArrayList<Planet> planets;
+    private HashMap<String, Planet> planets;
+    //private ArrayList<Planet> planets;
 
     public SolarSystem() {
         this.star = null;
-        this.planets = new ArrayList<Planet>();
+        this.planets = new HashMap<>();
     }
 
-    public SolarSystem(Star star, ArrayList<Planet> planets) {
+    public SolarSystem(Star star, HashMap<String, Planet> planets) {
         this.star = star;
         this.planets = planets;
     }
 
     public void addPlanet(Planet planet) throws SolarSystemException {
 
-        int size = planets.size();
-
-        for (int i = 0; i < size; i++) {
-            if (planets.get(i).equals(planet)) {
-                throw new SolarSystemException("Planet already exists!");
-            }
+        if (planets.putIfAbsent(planet.retName(), planet) != null) {
+            throw new SolarSystemException("Planet already exists!");
         }
-
-        planets.add(planet);
     }
 
-    public void removePlanet(Planet planet) {
-        planets.remove(planet);
+    public void removePlanet(Planet planet) throws SolarSystemException{
+        if (planets.remove(planet.retName()) == null) {
+            throw new SolarSystemException("Planet does not exist!");
+        }
     }
 
     public void addStar(Star star) throws SolarSystemException {
@@ -46,7 +44,7 @@ public class SolarSystem implements SolarSystemInterface {
         return this.star;
     }
 
-    public ArrayList<Planet> getPlanets() {
+    public HashMap<String, Planet> getPlanets() {
         return this.planets;
     }
 

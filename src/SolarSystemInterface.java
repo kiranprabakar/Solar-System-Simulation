@@ -16,4 +16,10 @@ public interface SolarSystemInterface {
     double  timeLimit = 1000000000;
 
     boolean speedUp = false;
+
+    int plotWidth = 1000;
+    int plotHeight = 1000;
+
+    int controlWidth = 400;
+    int controlHeight = 400;
 }
