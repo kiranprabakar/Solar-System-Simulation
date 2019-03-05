@@ -14,25 +14,26 @@ public class Planet extends SolarSystemBody {
      */
     private Star star;
     private SolarSystemPlot plot;
-    private double initX;
-    private double initY;
+    private double x;
+    private double y;
 
     private Color color;
 
-    public Planet(String name, double diameter, double distanceFromStar, double mass, Star star, SolarSystemPlot plot, Color color, double initX, double initY) {
+    public Planet(String name, double diameter, double distanceFromStar, double mass, Star star, SolarSystemPlot plot, Color color,
+                  double initX, double initY) {
         super(name, diameter, distanceFromStar, mass);
         setType("Planet");
         this.star = star;
         this.isHabitable = isHabitable(this.star.getHabitableZoneLowerBound(), this.star.getHabitableZoneUpperBound());
         this.plot = plot;
-        this.initX = initX;
-        this.initY = initY;
+        this.x = initX * AU;
+        this.y = initY * AU;
         this.color = color;
     }
 
     public boolean isHabitable(double lowerBound, double upperBound) {
-        return getDistanceFromStar() > lowerBound
-                && getDistanceFromStar() < upperBound;
+        return this.getDistanceFromCentralBody() > lowerBound
+                && this.getDistanceFromCentralBody() < upperBound;
     }
 
     public boolean getHabitability() {
@@ -47,20 +48,20 @@ public class Planet extends SolarSystemBody {
         return plot;
     }
 
-    public double getInitX() {
-        return initX;
+    public double getX() {
+        return x;
     }
 
-    public double getInitY() {
-        return initY;
+    public double getY() {
+        return y;
     }
 
-    public void setInitX(double initX) {
-        this.initX = initX;
+    public void setX(double initX) {
+        this.x = initX;
     }
 
-    public void setInitY(double initY) {
-        this.initY = initY;
+    public void setY(double initY) {
+        this.y = initY;
     }
 
     public boolean equals(Planet other) {
@@ -84,18 +85,12 @@ public class Planet extends SolarSystemBody {
 
         double time = 0;
 
-        double radiusDistance = this.getDistanceFromStar();
+        double radiusDistance = this.getDistanceFromCentralBody();
         double distance = radiusDistance;
         double starMass = star.getMass();
 
-        double x = initX * 1.496 * Math.pow(10,11);
-        double y = initY * 1.496 * Math.pow(10,11);
-
         double prevX = x;
         double prevY = y;
-
-        double prev2X = prevX;
-        double prev2Y = prevY;
 
         double theta = Math.atan(y / x);
 
@@ -113,8 +108,6 @@ public class Planet extends SolarSystemBody {
         double v_x = -velocity * Math.sin(theta);
 
         DecimalFormat df2 = new DecimalFormat("0.0000");
-
-        boolean removePoint = false;
 
         int count = 0;
 
@@ -136,32 +129,16 @@ public class Planet extends SolarSystemBody {
             time += dt;
 
             /*
-            if (time == dt * 2) {
-                removePoint = true;
-                prev2X = prevX;
-                prev2Y = prevY;
-            }
-            */
-
+             * This solves the blinking plot problem by only plotting fewer times
+             */
             if (time % (dt * 1000000) == 0) {
                 plot.addPoint(Color.black, 10, prevX / AU, prevY / AU);
                 plot.addPoint(this.color, 10, x / AU, y / AU);
                 prevX = x;
                 prevY = y;
-                removePoint = true;
                 plot.repaint();
                 count++;
             }
-
-
-            /*
-            if (removePoint) {
-                plot.addPoint(Color.black, 10, prev2X / AU, prev2Y / AU);
-                plot.repaint();
-                prev2X = prevX;
-                prev2Y = prevY;
-            }
-            */
 
             /*
              * This is the Verlet Algorithm implementation

@@ -3,8 +3,8 @@ import java.awt.event.*;
 
 public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
 
-    private int plotWidth = 800;			// width of plot in pixels
-    private int plotHeight = 800;			// height of plot in pixels
+    private int plotWidth = SolarSystemInterface.plotWidth;			// width of plot in pixels
+    private int plotHeight = SolarSystemInterface.plotHeight;			// height of plot in pixels
 
     // constant to define plotted point shapes (could add more later):
     public static final int CIRCLE = 1;
