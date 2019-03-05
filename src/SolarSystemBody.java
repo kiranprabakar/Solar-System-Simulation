@@ -9,13 +9,17 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
     private double distanceFromCentralBody;
     private double mass;
     private String name;
+    private double x;
+    private double y;
 
-    public SolarSystemBody(String name, double diameter, double distanceFromCentralBody, double mass) {
+    public SolarSystemBody(String name, double diameter, double distanceFromCentralBody, double mass, double initX, double initY) {
         this.name = name;
         this.type = null;
         this.diameter = diameter;
         this.distanceFromCentralBody = distanceFromCentralBody;
         this.mass = mass;
+        x = initX * AU;
+        y = initY * AU;
     }
 
     public String getType() {
@@ -38,6 +42,14 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
         return this.name;
     }
 
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
     public double getRadius() {
         return getDiameter() / 2;
     }
@@ -52,6 +64,14 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public void setY(double y) {
+        this.y = y;
     }
 
     public boolean equals(SolarSystemBody other) {

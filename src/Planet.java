@@ -14,20 +14,16 @@ public class Planet extends SolarSystemBody {
      */
     private Star star;
     private SolarSystemPlot plot;
-    private double x;
-    private double y;
 
     private Color color;
 
     public Planet(String name, double diameter, double distanceFromStar, double mass, Star star, SolarSystemPlot plot, Color color,
                   double initX, double initY) {
-        super(name, diameter, distanceFromStar, mass);
+        super(name, diameter, distanceFromStar, mass, initX, initY);
         setType("Planet");
         this.star = star;
         this.isHabitable = isHabitable(this.star.getHabitableZoneLowerBound(), this.star.getHabitableZoneUpperBound());
         this.plot = plot;
-        this.x = initX * AU;
-        this.y = initY * AU;
         this.color = color;
     }
 
@@ -49,19 +45,19 @@ public class Planet extends SolarSystemBody {
     }
 
     public double getX() {
-        return x;
+        return super.getX();
     }
 
     public double getY() {
-        return y;
+        return super.getY();
     }
 
     public void setX(double initX) {
-        this.x = initX;
+        super.setX(initX);
     }
 
     public void setY(double initY) {
-        this.y = initY;
+        super.setY(initY);
     }
 
     public boolean equals(Planet other) {
@@ -89,10 +85,10 @@ public class Planet extends SolarSystemBody {
         double distance = radiusDistance;
         double starMass = star.getMass();
 
-        double prevX = x;
-        double prevY = y;
+        double prevX = getX();
+        double prevY = getY();
 
-        double theta = Math.atan(y / x);
+        double theta = Math.atan(getY() / getX());
 
         double acceleration = G * starMass / Math.pow(radiusDistance, 2);       //Acceleration constant (for now ...)
         double prevAcceleration;
@@ -114,12 +110,12 @@ public class Planet extends SolarSystemBody {
         //mv^2/r = GmM/r^2
         while (time <= timeLimit) {
 
-            x += v_x * (dt / 100);
-            y += v_y * (dt / 100);
+            setX(getX() + v_x * (dt / 100));
+            setY(getY() + v_y * (dt / 100));
 
-            theta = Math.atan(y / x);
+            theta = Math.atan(getY() / getX());
 
-            if (x < 0) {
+            if (getX() < 0) {
                 theta += Math.PI;
             }
 
@@ -132,10 +128,10 @@ public class Planet extends SolarSystemBody {
              * This solves the blinking plot problem by only plotting fewer times
              */
             if (time % (dt * 1000000) == 0) {
-                plot.addPoint(Color.black, 10, prevX / AU, prevY / AU);
-                plot.addPoint(this.color, 10, x / AU, y / AU);
-                prevX = x;
-                prevY = y;
+                plot.addPoint(Color.black, 5, prevX / AU, prevY / AU);
+                plot.addPoint(this.color, 5, getX() / AU, getY() / AU);
+                prevX = getX();
+                prevY = getY();
                 plot.repaint();
                 count++;
             }

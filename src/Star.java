@@ -21,7 +21,7 @@ public class Star extends SolarSystemBody {
 
     public Star(String name, double diameter, double mass, double absoluteVisualMagnitude, String spectralClass,
                 SolarSystemPlot plot, Color color) throws SpectralClassNotValidException {
-        super(name, diameter, 0, mass);
+        super(name, diameter, 0, mass, 0, 0);
         setType("Star");
         this.absoluteVisualMagnitude = absoluteVisualMagnitude;
         this.spectralClass = spectralClass;
