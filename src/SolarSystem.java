@@ -8,16 +8,19 @@ public class SolarSystem implements SolarSystemInterface {
 
     private Star star;
     private HashMap<String, Planet> planets;
+    private HashMap<String, Satellite> satellites;
     //private ArrayList<Planet> planets;
 
     public SolarSystem() {
         this.star = null;
         this.planets = new HashMap<>();
+        this.satellites = new HashMap<>();
     }
 
-    public SolarSystem(Star star, HashMap<String, Planet> planets) {
+    public SolarSystem(Star star, HashMap<String, Planet> planets, HashMap<String, Satellite> satellites) {
         this.star = star;
         this.planets = planets;
+        this.satellites = satellites;
     }
 
     public void addPlanet(Planet planet) throws SolarSystemException {
@@ -25,12 +28,30 @@ public class SolarSystem implements SolarSystemInterface {
         if (planets.putIfAbsent(planet.retName(), planet) != null) {
             throw new SolarSystemException("Planet already exists!");
         }
+
     }
 
-    public void removePlanet(Planet planet) throws SolarSystemException{
+    public void removePlanet(Planet planet) throws SolarSystemException {
+
         if (planets.remove(planet.retName()) == null) {
             throw new SolarSystemException("Planet does not exist!");
         }
+    }
+
+    public void addSatellite(Satellite satellite) throws SolarSystemException {
+
+        if (satellites.putIfAbsent(satellite.retName(), satellite) != null) {
+            throw new SolarSystemException("Satellite already exists!");
+        }
+
+    }
+
+    public void removeSatellite(Satellite satellite) throws SolarSystemException {
+
+        if (satellites.remove(satellite.retName()) == null) {
+            throw new SolarSystemException("Satellite does not exist!");
+        }
+
     }
 
     public void addStar(Star star) throws SolarSystemException {
@@ -48,14 +69,8 @@ public class SolarSystem implements SolarSystemInterface {
         return this.planets;
     }
 
-    public ArrayList<SolarSystemBody> getBodies() {
-        ArrayList<SolarSystemBody> bodies = new ArrayList<>();
-        for (int i = 0; i < planets.size(); i++) {
-            bodies.add(planets.get(i));
-        }
-        bodies.add(getStar());
-
-        return bodies;
+    public HashMap<String, Satellite> getSatellites() {
+        return satellites;
     }
 
     /*
@@ -84,12 +99,26 @@ public class SolarSystem implements SolarSystemInterface {
         Planet mercury = new Planet("Mercury",4877922, 0.39 * 149.6 * Math.pow(10,9), 3.285 * Math.pow(10,23),
                 solarSystem.getStar(), plot, plot.colors[5], 0.39, 0);
 
+        //public Satellite(String name, double diameter, double distanceFromPlanet, double mass,
+        //                     SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY)
+        //Need to redo the moon initial x
+        //True distance from earth: 384400000 meters
+        Satellite moon = new Satellite("Moon", (1737.4 * 2) * 1000, 0.5 * AU,
+                earth.getMass() * 1.2298E-1, earth, plot, Color.GRAY, 0, 0.5 + earth.getY()/AU);
+
         try {
             solarSystem.addPlanet(earth);
             solarSystem.addPlanet(mercury);
             solarSystem.addPlanet(mars);
         } catch (SolarSystemException ss) {
             System.out.println("Planet with the same characteristics already added!");
+            exit(1);
+        }
+
+        try {
+            solarSystem.addSatellite(moon);
+        } catch (SolarSystemException ss) {
+            System.out.println("Satellite with the same characteristics already added!");
             exit(1);
         }
 
@@ -105,12 +134,16 @@ public class SolarSystem implements SolarSystemInterface {
 
         SolarThreadFactory threads = new SolarThreadFactory();
 
-        ExecutorService executorService = Executors.newFixedThreadPool(solarSystem.getPlanets().size() + 1, threads);
+        ExecutorService executorService = Executors.newFixedThreadPool(solarSystem.getPlanets().size() + solarSystem.getSatellites().size() + 1, threads);
 
         executorService.execute(threads.newThread(solarSystem.getStar()));
 
-        for (int i = 0; i < solarSystem.getPlanets().size(); i++) {
-            executorService.execute(threads.newThread(solarSystem.getPlanets().get(i)));
+        for (String name : solarSystem.getPlanets().keySet()) {
+            executorService.execute(threads.newThread(solarSystem.getPlanets().get(name)));
+        }
+
+        for (String name : solarSystem.getSatellites().keySet()) {
+            executorService.execute(threads.newThread(solarSystem.getSatellites().get(name)));
         }
 
         executorService.shutdown();
