@@ -83,6 +83,8 @@ public class SolarSystem implements SolarSystemInterface {
 
         SolarSystem solarSystem = new SolarSystem();
 
+        SolarSystemGUI gui = new SolarSystemGUI(solarSystem);
+
         SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -5, 5,
                 -5, 5);
 
