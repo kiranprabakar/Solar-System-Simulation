@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.text.DecimalFormat;
 
 public class Satellite extends SolarSystemBody {
 
@@ -59,11 +58,11 @@ public class Satellite extends SolarSystemBody {
         double relativeX = getX() - body.getX();
         double relativeY = getY() - body.getY();
 
-        System.out.println(relativeX / AU);
-        System.out.println(relativeY / AU);
-
         double prevX = relativeX;
         double prevY = relativeY;
+
+        double prevBodyX = body.getX();
+        double prevBodyY = body.getY();
 
         double theta = Math.atan(relativeY / relativeX);
 
@@ -80,10 +79,10 @@ public class Satellite extends SolarSystemBody {
         int count = 0;
 
         //mv^2/r = GmM/r^2
-        while (time <= timeLimit) {
+        while (true) {
 
-            relativeX += v_x * (dt / 100);
-            relativeY += v_y * (dt / 100);
+            relativeX += v_x * (dt);
+            relativeY += v_y * (dt);
 
             theta = Math.atan(relativeY / relativeX);
 
@@ -100,19 +99,15 @@ public class Satellite extends SolarSystemBody {
              * This solves the blinking plot problem by only plotting fewer times
              */
             if (time % (dt * 1000000) == 0) {
-                //plot.addPoint(Color.black, 5, (prevX + body.getX()) / AU, (prevY + body.getY()) / AU);
-                plot.addPoint(Color.black, 10, prevX / AU + 2, prevY / AU + 2);
-                plot.addPoint(this.color, 10, relativeX / AU + 2, relativeX / AU + 2);
-                //plot.addPoint(this.color, 5, (relativeX + body.getX()) / AU, (relativeX + body.getY()) / AU);
+                plot.addPoint(Color.black, 5, prevX / AU + prevBodyX / AU, prevY / AU + prevBodyY / AU);
+                plot.addPoint(this.color, 5, relativeX / AU + body.getX() / AU, relativeY / AU + body.getY() / AU);
                 prevX = relativeX;
                 prevY = relativeY;
+                prevBodyX = body.getX();
+                prevBodyY = body.getY();
                 plot.repaint();
             }
-
         }
-
-        System.out.println(retName() + " is done!");
-
     }
 
     public void run() {

@@ -11,6 +11,7 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
     private String name;
     private double x;
     private double y;
+    private boolean toPause;
 
     public SolarSystemBody(String name, double diameter, double distanceFromCentralBody, double mass, double initX, double initY) {
         this.name = name;
@@ -20,6 +21,7 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
         this.mass = mass;
         x = initX * AU;
         y = initY * AU;
+        toPause = false;
     }
 
     public String getType() {
@@ -77,6 +79,14 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
     public boolean equals(SolarSystemBody other) {
         return other.getType().equals(getType()) && other.getDiameter() == getDiameter()
                 && other.getDistanceFromCentralBody() == getDistanceFromCentralBody() && other.getMass() == getMass();
+    }
+
+    public boolean toPause() {
+        return toPause;
+    }
+
+    public void pause() {
+        toPause = true;
     }
 
     public void run() {
