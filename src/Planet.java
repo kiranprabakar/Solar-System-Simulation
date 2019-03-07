@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 public class Planet extends SolarSystemBody {
 
     private boolean isHabitable;
+    private boolean toPause;
 
     /*
      * Following variables are for the run() method
@@ -25,6 +26,7 @@ public class Planet extends SolarSystemBody {
         this.isHabitable = isHabitable(this.star.getHabitableZoneLowerBound(), this.star.getHabitableZoneUpperBound());
         this.plot = plot;
         this.color = color;
+        toPause = false;
     }
 
     public boolean isHabitable(double lowerBound, double upperBound) {
@@ -33,7 +35,7 @@ public class Planet extends SolarSystemBody {
     }
 
     public boolean getHabitability() {
-        return this.isHabitable;
+        return isHabitable;
     }
 
     public Star getStar() {
@@ -60,10 +62,6 @@ public class Planet extends SolarSystemBody {
         super.setY(initY);
     }
 
-    public boolean equals(Planet other) {
-        return super.equals(other) && other.getHabitability() == getHabitability();
-    }
-
     /*
      * Orbit calculated using regular euler formula
      * Possibilities for improvement:
@@ -73,16 +71,16 @@ public class Planet extends SolarSystemBody {
      *
      *  Can use vis viva equation (AAE 251) v^2  = GM(2 / r - 1 / a)
      *      a = semi-major axis
-     *      r = distance from center pof central body to point on orbit (r = sqrt(x^2 + y^2))
+     *      r = distance from center of central body to point on orbit (r = sqrt(x^2 + y^2))
      *
      *  Might use Verlet Algorithm instead of vis viva
      */
     public synchronized void orbit() {
 
         double time = 0;
+        double dt = SolarSystemInterface.dt / 100;
 
-        double radiusDistance = this.getDistanceFromCentralBody();
-        double distance = radiusDistance;
+        double distance = this.getDistanceFromCentralBody();
         double starMass = star.getMass();
 
         double prevX = getX();
@@ -90,26 +88,23 @@ public class Planet extends SolarSystemBody {
 
         double theta = Math.atan(getY() / getX());
 
-        double acceleration = G * starMass / Math.pow(radiusDistance, 2);       //Acceleration constant (for now ...)
-        double prevAcceleration;
-        /*double a_y = acceleration * Math.sin(theta);
-        double a_x = acceleration * Math.cos(theta);*/
+        double acceleration = G * starMass / Math.pow(distance, 2);       //Acceleration constant (for now ...)
+
         double a_y = acceleration * Math.sin(theta);
         double a_x = acceleration * Math.cos(theta);
+        double prevAx;
+        double prevAy;
 
-        double velocity = Math.sqrt(acceleration * radiusDistance);
+        double velocity = Math.sqrt(acceleration * distance);
 
         //double tangentialSpeed = Math.sqrt(acceleration * radiusDistance);   //Tangenital velocity constant (for now ...)
         double v_y = velocity * Math.cos(theta);
         double v_x = -velocity * Math.sin(theta);
 
-        DecimalFormat df2 = new DecimalFormat("0.0000");
-
-        int count = 0;
-
         //mv^2/r = GmM/r^2
-        while (time <= timeLimit) {
+        while (true) {
 
+            /*
             setX(getX() + v_x * (dt / 100));
             setY(getY() + v_y * (dt / 100));
 
@@ -124,60 +119,59 @@ public class Planet extends SolarSystemBody {
 
             time += dt;
 
-            /*
-             * This solves the blinking plot problem by only plotting fewer times
-             */
+            //This solves the blinking plot problem by only plotting fewer times
             if (time % (dt * 1000000) == 0) {
-                plot.addPoint(Color.black, 5, prevX / AU, prevY / AU);
-                plot.addPoint(this.color, 5, getX() / AU, getY() / AU);
+                plot.addPoint(Color.black, 7, prevX / AU, prevY / AU);
+                plot.addPoint(this.color, 7, getX() / AU, getY() / AU);
                 prevX = getX();
                 prevY = getY();
                 plot.repaint();
-                count++;
             }
+            */
 
             /*
              * This is the Verlet Algorithm implementation
              * Will likely come back to once threads and plotter are debugged
              */
-            /*
-            x += v_x * dt + 0.5 * a_x * Math.pow(dt,2);
-            y += v_y * dt + 0.5 * a_y * Math.pow(dt,2);
+
+            setX(getX() + v_x * dt + 0.5 * a_x * Math.pow(dt, 2));
+            setY(getY() + v_y * dt + 0.5 * a_y * Math.pow(dt, 2));
 
             v_x += 0.5 * a_x * dt;
             v_y  += 0.5 * a_y * dt;
 
-            distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-            theta = Math.atan(y / x);
+            distance = Math.sqrt(Math.pow(getX(), 2) + Math.pow(getY(), 2));
+            theta = Math.atan(getY() / getX());
 
-            if (x < 0) {
+            if (getX() < 0) {
                 theta += Math.PI;
             }
 
-            prevAcceleration = acceleration;
+            prevAx = a_x;
+            prevAy = a_y;
             acceleration = G * starMass / Math.pow(distance, 2);
-            a_y = acceleration * Math.sin(theta);
-            a_x = acceleration * Math.cos(theta);
+            a_y = -acceleration * Math.sin(theta);
+            a_x = -acceleration * Math.cos(theta);
 
-            if (x > 0 && y > 0) {
-                a_x = -a_x;
-                a_y = -a_y;
-            } else if (x > 0 && y < 0) {
-                a_x = -a_x;
-            } else if(x < 0 && y < 0) {
+            v_x += 0.5 * (prevAx + a_x) * dt;
+            v_y += 0.5 * (prevAy + a_y) * dt;
 
-            } else if (x < 0 && y > 0) {
-                a_y = -a_y;
+            /*if (!toPause()) {
+                time += SolarSystemInterface.dt;
+            }*/
+
+            time += SolarSystemInterface.dt;
+
+            if (time % (SolarSystemInterface.dt * 100000) == 0) {
+                plot.addPoint(Color.black, 7, prevX / AU, prevY / AU);
+                plot.addPoint(this.color, 7, getX() / AU, getY() / AU);
+                prevX = getX();
+                prevY = getY();
+                plot.repaint();
+
             }
 
-            v_x += 0.5 * (a_x + prevAcceleration * Math.cos(theta)) * dt;
-            v_y += 0.5 * (a_y + prevAcceleration * Math.sin(theta)) * dt;
-            */
-
         }
-
-        System.out.println(retName() + " is done! Iterations: " + count);
-
     }
 
     public void run() {

@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.*;
 import static java.lang.System.exit;
@@ -9,7 +8,6 @@ public class SolarSystem implements SolarSystemInterface {
     private Star star;
     private HashMap<String, Planet> planets;
     private HashMap<String, Satellite> satellites;
-    //private ArrayList<Planet> planets;
 
     public SolarSystem() {
         this.star = null;
@@ -36,6 +34,7 @@ public class SolarSystem implements SolarSystemInterface {
         if (planets.remove(planet.retName()) == null) {
             throw new SolarSystemException("Planet does not exist!");
         }
+
     }
 
     public void addSatellite(Satellite satellite) throws SolarSystemException {
@@ -55,10 +54,13 @@ public class SolarSystem implements SolarSystemInterface {
     }
 
     public void addStar(Star star) throws SolarSystemException {
+
         if (this.star != null) {
             throw new SolarSystemException("Star already exists!");
         }
+
         this.star = star;
+
     }
 
     public Star getStar() {
@@ -87,7 +89,10 @@ public class SolarSystem implements SolarSystemInterface {
         try {
             solarSystem.addStar(new Star("Sun",1.391016 * Math.pow(10,9), 1.989 * Math.pow(10,30), 4.83, "G", plot, Color.yellow));
         }
-        catch (SolarSystemException ss) { }
+        catch (SolarSystemException ss) {
+            ss.printStackTrace();
+            exit(0);
+        }
 
         /*
          * Only gonna worry about 1 planet for now while I debug this paint stuff
@@ -103,23 +108,23 @@ public class SolarSystem implements SolarSystemInterface {
         //                     SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY)
         //Need to redo the moon initial x
         //True distance from earth: 384400000 meters
-        Satellite moon = new Satellite("Moon", (1737.4 * 2) * 1000, 0.5 * AU,
-                earth.getMass() * 1.2298E-1, earth, plot, Color.GRAY, 0, 0.5 + earth.getY()/AU);
+        Moon moon = new Moon("Moon", (1737.4 * 2) * 1000, 0.05 * AU,
+                earth.getMass() * 1.2298E-1, earth, plot, Color.GRAY, 0, 0.05 + earth.getY()/AU);
 
         try {
             solarSystem.addPlanet(earth);
             solarSystem.addPlanet(mercury);
             solarSystem.addPlanet(mars);
         } catch (SolarSystemException ss) {
-            System.out.println("Planet with the same characteristics already added!");
-            exit(1);
+            ss.printStackTrace();
+            exit(0);
         }
 
         try {
             solarSystem.addSatellite(moon);
         } catch (SolarSystemException ss) {
-            System.out.println("Satellite with the same characteristics already added!");
-            exit(1);
+            ss.printStackTrace();
+            exit(0);
         }
 
         class SolarThreadFactory implements ThreadFactory {
@@ -130,6 +135,7 @@ public class SolarSystem implements SolarSystemInterface {
                 size++;
                 return new Thread(r);
             }
+
         }
 
         SolarThreadFactory threads = new SolarThreadFactory();

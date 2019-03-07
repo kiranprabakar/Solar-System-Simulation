@@ -91,7 +91,7 @@ public class Star extends SolarSystemBody {
 
         double time = 0;
 
-        while (time <= timeLimit) {
+        while (true) {
             plot.addPoint(this.color, 20, 0, 0);
             time += dt;
         }

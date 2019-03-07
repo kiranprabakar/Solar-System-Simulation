@@ -22,4 +22,8 @@ public interface SolarSystemInterface {
 
     int controlWidth = 400;
     int controlHeight = 400;
+
+    String[] starNames = {"Sun", "Betelgeuse", "Alpha Centauri"};
 }
+
+
