@@ -162,7 +162,8 @@ public class Planet extends SolarSystemBody {
 
             time += SolarSystemInterface.dt;
 
-            if (time % (SolarSystemInterface.dt * 100000) == 0) {
+            if (time % (SolarSystemInterface.dt * 1000000) == 0) {
+
                 plot.addPoint(Color.black, 7, prevX / AU, prevY / AU);
                 plot.addPoint(this.color, 7, getX() / AU, getY() / AU);
                 prevX = getX();
@@ -172,6 +173,7 @@ public class Planet extends SolarSystemBody {
             }
 
         }
+
     }
 
     public void run() {
