@@ -2,6 +2,7 @@
  * Defines constants to be used
  */
 
+import java.util.ArrayList;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -23,7 +24,6 @@ public interface SolarSystemInterface {
     int controlWidth = 400;
     int controlHeight = 400;
 
-    String[] starNames = {"Sun", "Betelgeuse", "Alpha Centauri"};
 }
 
 
