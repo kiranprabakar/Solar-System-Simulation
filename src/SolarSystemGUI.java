@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class SolarSystemGUI extends JFrame {
+public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
     private SolarSystem solarSystem;
 

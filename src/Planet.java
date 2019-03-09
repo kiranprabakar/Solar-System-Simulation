@@ -26,6 +26,8 @@ public class Planet extends SolarSystemBody {
         this.isHabitable = isHabitable(this.star.getHabitableZoneLowerBound(), this.star.getHabitableZoneUpperBound());
         this.plot = plot;
         this.color = color;
+        setX((Math.round(Math.random()) * distanceFromStar - Math.round(Math.random()) * distanceFromStar) * AU);
+        setY(Math.round(distanceFromStar - getX()) * AU);
         toPause = false;
     }
 
@@ -60,6 +62,18 @@ public class Planet extends SolarSystemBody {
 
     public void setY(double initY) {
         super.setY(initY);
+    }
+
+    public void setStar(Star star) {
+        this.star = star;
+    }
+
+    public void setPlot(SolarSystemPlot plot) {
+        this.plot = plot;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     /*
