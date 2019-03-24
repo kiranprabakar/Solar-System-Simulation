@@ -14,6 +14,10 @@ public class SolarSystem implements SolarSystemInterface {
     private SolarSystemPlot plot;
     private DataStorage ds;
 
+    private ExecutorService executorService;
+
+    private boolean stopSimulation, startSimulation;
+
 
     public SolarSystem() {
         this.star = null;
@@ -21,6 +25,11 @@ public class SolarSystem implements SolarSystemInterface {
         this.satellites = new HashMap<>();
         plot = null;
         ds = null;
+
+        executorService = null;
+
+        stopSimulation = false;
+        startSimulation = false;
     }
 
     public SolarSystem(Star star, HashMap<String, Planet> planets, HashMap<String, Satellite> satellites, SolarSystemPlot plot) {
@@ -28,6 +37,11 @@ public class SolarSystem implements SolarSystemInterface {
         this.planets = planets;
         this.satellites = satellites;
         this.plot = plot;
+
+        executorService = null;
+
+        stopSimulation = false;
+        startSimulation = false;
     }
 
     public Planet newPlanet(String name) {
@@ -38,10 +52,73 @@ public class SolarSystem implements SolarSystemInterface {
             //Add code to add new planet here (also will need to update database here)
         }
 
-        return new Planet(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),
+        int divisor;
+
+        if (ds.planetDistancefromCentralBody.get(index) < ds.planetDistancefromCentralBody.get(3)) {
+            divisor = innerPlanetFactor;
+        } else if (ds.planetDistancefromCentralBody.get(index) < ds.planetDistancefromCentralBody.get(6)) {
+            divisor = outerPlanetFactor;
+        } else {
+            divisor = nepUrFactor;
+        }
+
+        Planet planet = new Planet(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),
                 ds.planetMass.get(index), star, plot, ds.planetColors.get(index),
-                ds.planetXCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU,
-                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU);
+                ds.planetXCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU / divisor,
+                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU / divisor);
+
+        ds.satelliteCentralBody.add(planet);
+
+        return planet;
+
+    }
+
+    public Star newStar(String name) {
+
+        int index = ds.starNames.indexOf(name);
+
+        if (index < 0) {
+            //Add code to add new star here (also will need to update database here)
+        }
+
+        return new Star(name, ds.starDiameters.get(index), ds.starMass.get(index), plot, ds.starColors.get(index));
+
+    }
+
+    public Satellite newSatellite(String name) {
+
+        int index = ds.satelliteNames.indexOf(name);
+
+        if (index < 0) {
+            //Add code to add new star here (also will need to update database here)
+        }
+
+        double distance;
+
+        if ((distance = ds.satelliteDistancefromCentralBody.get(index)) < (0.05 * AU)) {
+            //Gotta make plot point bigger
+        }
+
+        if (ds.satelliteCentralBody.size() == 0) {
+            return null;
+        }
+
+        int i = 0;
+
+        while (i < ds.satelliteCentralBody.size()) {
+            if (ds.satelliteCentralBody.get(i).retName().equals(ds.getSatelliteCentralBodyNames.get(index))) {
+                break;
+            }
+            i++;
+        }
+
+        Planet planet = ds.satelliteCentralBody.get(i);
+
+        return new Satellite(name, ds.satelliteDiameters.get(index), ds.satelliteDistancefromCentralBody.get(index),
+                ds.satelliteMass.get(index), planet, plot, ds.satelliteColors.get(index),
+                ds.satelliteXCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU,
+                ds.satelliteYCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU);
+
 
     }
 
@@ -111,6 +188,26 @@ public class SolarSystem implements SolarSystemInterface {
         this.ds = ds;
     }
 
+    public SolarSystemPlot getPlot() {
+        return plot;
+    }
+
+    public void setStartSimulation(boolean startSimulation) {
+        this.startSimulation = startSimulation;
+    }
+
+    public boolean isStartSimulation() {
+        return startSimulation;
+    }
+
+    public void setStopSimulation(boolean stopSimulation) {
+        this.stopSimulation = stopSimulation;
+    }
+
+    public boolean isStopSimulation() {
+        return stopSimulation;
+    }
+
     public HashMap<String, Planet> getPlanets() {
         return this.planets;
     }
@@ -119,60 +216,7 @@ public class SolarSystem implements SolarSystemInterface {
         return satellites;
     }
 
-    /*
-     * Probably need to look at Graphics2D vs Canvas for the plotting
-     */
-
-    public static void main(String[] args) {
-
-        SolarSystem solarSystem = new SolarSystem();
-
-        SolarSystemGUI gui = new SolarSystemGUI(solarSystem);
-
-        SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -5, 5,
-                -5, 5);
-
-        DataStorage dataStorage = new DataStorage();
-
-        try {
-            solarSystem.addPlot(plot);
-            solarSystem.addDataStorage(dataStorage);
-        } catch (SolarSystemException ss) {
-            ss.printStackTrace();
-        }
-
-        try {
-            solarSystem.addStar(new Star("Sun",1.391016 * Math.pow(10,9), 1.989 * Math.pow(10,30), 4.83, "G", plot, Color.yellow));
-        }
-        catch (SolarSystemException ss) {
-            ss.printStackTrace();
-            exit(0);
-        }
-
-        Planet earth = solarSystem.newPlanet("Earth");
-        Planet mars = solarSystem.newPlanet("Mars");
-        Planet mercury = solarSystem.newPlanet("Mercury");
-
-        //Need to redo the moon initial x
-        //True distance from earth: 384400000 meters
-        Satellite moon = new Satellite("Moon", (1737.4 * 2) * 1000, 0.05 * AU,
-                earth.getMass() * 1.2298E-1, earth, plot, Color.RED, earth.getX() + 0.05, earth.getY());
-
-        try {
-            solarSystem.addPlanet(earth);
-            solarSystem.addPlanet(mercury);
-            solarSystem.addPlanet(mars);
-        } catch (SolarSystemException ss) {
-            ss.printStackTrace();
-            exit(0);
-        }
-
-        try {
-            solarSystem.addSatellite(moon);
-        } catch (SolarSystemException ss) {
-            ss.printStackTrace();
-            exit(0);
-        }
+    public void startSimulation(boolean stopSimulation) {
 
         class SolarThreadFactory implements ThreadFactory {
 
@@ -187,23 +231,76 @@ public class SolarSystem implements SolarSystemInterface {
 
         SolarThreadFactory threads = new SolarThreadFactory();
 
-        ExecutorService executorService = Executors.newFixedThreadPool(solarSystem.getPlanets().size() + solarSystem.getSatellites().size() + 1, threads);
+        executorService = Executors.newFixedThreadPool(bodyLimit, threads);
 
         try {
-            executorService.execute(threads.newThread(solarSystem.getStar()));
+            executorService.execute(threads.newThread(getStar()));
         } catch (SolarSystemException ss) {
             ss.printStackTrace();
         }
 
-        for (String name : solarSystem.getPlanets().keySet()) {
-            executorService.execute(threads.newThread(solarSystem.getPlanets().get(name)));
+        for (String name : getPlanets().keySet()) {
+            executorService.execute(threads.newThread(getPlanets().get(name)));
         }
 
-        for (String name : solarSystem.getSatellites().keySet()) {
-            executorService.execute(threads.newThread(solarSystem.getSatellites().get(name)));
+        for (String name : getSatellites().keySet()) {
+            executorService.execute(threads.newThread(getSatellites().get(name)));
         }
+
+    }
+
+    public void stopSimulation() {
+
+        try {
+            getStar().pause();
+
+        } catch (SolarSystemException ss) {
+            ss.printStackTrace();
+        }
+
+        for (String name : getPlanets().keySet()) {
+            System.out.println(name);
+            getPlanets().get(name).pause();
+        }
+
+        for (String name : getSatellites().keySet()) {
+            getSatellites().get(name).pause();
+        }
+
+        getPlot().clearThePlot();
 
         executorService.shutdown();
+        System.out.println(executorService.isTerminated());
+
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+
+    /**
+     * Main method
+     * Initiate and run from this class only
+     **/
+
+    public static void main(String[] args) {
+
+        SolarSystem solarSystem = new SolarSystem();
+
+        SolarSystemGUI gui = new SolarSystemGUI(solarSystem);
+
+        SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -coordinateMax, coordinateMax,
+                -coordinateMax, coordinateMax);
+
+        DataStorage dataStorage = new DataStorage();
+
+        try {
+            solarSystem.addPlot(plot);
+            solarSystem.addDataStorage(dataStorage);
+        } catch (SolarSystemException ss) {
+            ss.printStackTrace();
+        }
 
     }
 
