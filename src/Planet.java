@@ -18,27 +18,25 @@ public class Planet extends SolarSystemBody {
 
     private Color color;
 
-    public Planet(String name, double diameter, double distanceFromStar, double mass, Star star, SolarSystemPlot plot, Color color,
-                  double initX, double initY) {
+    public Planet(String name, double diameter, double distanceFromStar, double mass, Star star,
+                  SolarSystemPlot plot, Color color, double initX, double initY) {
         super(name, diameter, distanceFromStar, mass, initX, initY);
         setType("Planet");
         this.star = star;
-        this.isHabitable = isHabitable(this.star.getHabitableZoneLowerBound(), this.star.getHabitableZoneUpperBound());
+        //this.isHabitable = isHabitable(this.star.getHabitableZoneLowerBound(), this.star.getHabitableZoneUpperBound());
         this.plot = plot;
         this.color = color;
-        setX((Math.round(Math.random()) * distanceFromStar - Math.round(Math.random()) * distanceFromStar) * AU);
-        setY(Math.round(distanceFromStar - getX()) * AU);
         toPause = false;
     }
 
-    public boolean isHabitable(double lowerBound, double upperBound) {
+    /*public boolean isHabitable(double lowerBound, double upperBound) {
         return this.getDistanceFromCentralBody() > lowerBound
                 && this.getDistanceFromCentralBody() < upperBound;
-    }
+    }*/
 
-    public boolean getHabitability() {
+    /*public boolean getHabitability() {
         return isHabitable;
-    }
+    }*/
 
     public Star getStar() {
         return star;
@@ -48,19 +46,19 @@ public class Planet extends SolarSystemBody {
         return plot;
     }
 
-    public double getX() {
+    public synchronized double getX() {
         return super.getX();
     }
 
-    public double getY() {
+    public synchronized double getY() {
         return super.getY();
     }
 
-    public void setX(double initX) {
+    public synchronized void setX(double initX) {
         super.setX(initX);
     }
 
-    public void setY(double initY) {
+    public synchronized void setY(double initY) {
         super.setY(initY);
     }
 
@@ -92,7 +90,7 @@ public class Planet extends SolarSystemBody {
     public synchronized void orbit() {
 
         double time = 0;
-        double dt = SolarSystemInterface.dt / 100;
+        //double dt = SolarSystemInterface.dt / 100;
 
         double distance = this.getDistanceFromCentralBody();
         double starMass = star.getMass();
@@ -118,7 +116,7 @@ public class Planet extends SolarSystemBody {
         //mv^2/r = GmM/r^2
         while (true) {
 
-            /*
+
             setX(getX() + v_x * (dt / 100));
             setY(getY() + v_y * (dt / 100));
 
@@ -134,20 +132,24 @@ public class Planet extends SolarSystemBody {
             time += dt;
 
             //This solves the blinking plot problem by only plotting fewer times
-            if (time % (dt * 1000000) == 0) {
+            //time += SolarSystemInterface.dt;
+
+            if (time % (SolarSystemInterface.dt * 1000000) == 0) {
+
                 plot.addPoint(Color.black, 7, prevX / AU, prevY / AU);
                 plot.addPoint(this.color, 7, getX() / AU, getY() / AU);
                 prevX = getX();
                 prevY = getY();
                 plot.repaint();
+
             }
-            */
+
 
             /*
              * This is the Verlet Algorithm implementation
              * Will likely come back to once threads and plotter are debugged
              */
-
+            /*
             setX(getX() + v_x * dt + 0.5 * a_x * Math.pow(dt, 2));
             setY(getY() + v_y * dt + 0.5 * a_y * Math.pow(dt, 2));
 
@@ -173,19 +175,6 @@ public class Planet extends SolarSystemBody {
             /*if (!toPause()) {
                 time += SolarSystemInterface.dt;
             }*/
-
-            time += SolarSystemInterface.dt;
-
-            if (time % (SolarSystemInterface.dt * 1000000) == 0) {
-
-                plot.addPoint(Color.black, 7, prevX / AU, prevY / AU);
-                plot.addPoint(this.color, 7, getX() / AU, getY() / AU);
-                prevX = getX();
-                prevY = getY();
-                plot.repaint();
-
-            }
-
         }
 
     }
