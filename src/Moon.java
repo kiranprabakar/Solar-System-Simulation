@@ -8,4 +8,8 @@ public class Moon extends Satellite {
         setType("Moon");
     }
 
+    public void run() {
+        super.run();
+    }
+
 }

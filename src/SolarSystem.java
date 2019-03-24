@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.*;
 import static java.lang.System.exit;
+import static java.lang.System.in;
 
 public class SolarSystem implements SolarSystemInterface {
 
@@ -11,17 +12,7 @@ public class SolarSystem implements SolarSystemInterface {
     private HashMap<String, Planet> planets;
     private HashMap<String, Satellite> satellites;
     private SolarSystemPlot plot;
-
-    private ArrayList<String> planetNames = new ArrayList<>(Arrays.asList("Mercury", "Venus", "Earth",
-            "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"));
-    private ArrayList<Double> diameters = new ArrayList<>(Arrays.asList(4.7894E6, 12.104E6, 12.742E6,
-            6.779E6, 139.82E6, 116.46E6, 50.724E6, 49.244E6));
-    private ArrayList<Double> distancefromCentralBody = new ArrayList<>(Arrays.asList(57.91E9, 108.2E9, 149.6E9,
-            227.9E9, 778.5E9, 1.434E12, 2.871E12, 4.495E12));
-    private ArrayList<Double> mass = new ArrayList<>(Arrays.asList(3.285E23, 4.867E24, 5.972E24,
-            6.39E23, 1.898E27, 5.683E26, 8.681E25, 1.024E25));
-    private ArrayList<Color> colors = new ArrayList<>(Arrays.asList(Color.gray, Color.magenta, Color.blue,
-            Color.red, Color.orange, Color.pink, Color.cyan, Color.blue));
+    private DataStorage ds;
 
 
     public SolarSystem() {
@@ -29,6 +20,7 @@ public class SolarSystem implements SolarSystemInterface {
         this.planets = new HashMap<>();
         this.satellites = new HashMap<>();
         plot = null;
+        ds = null;
     }
 
     public SolarSystem(Star star, HashMap<String, Planet> planets, HashMap<String, Satellite> satellites, SolarSystemPlot plot) {
@@ -36,6 +28,21 @@ public class SolarSystem implements SolarSystemInterface {
         this.planets = planets;
         this.satellites = satellites;
         this.plot = plot;
+    }
+
+    public Planet newPlanet(String name) {
+
+        int index = ds.planetNames.indexOf(name);
+
+        if (index < 0) {
+            //Add code to add new planet here (also will need to update database here)
+        }
+
+        return new Planet(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),
+                ds.planetMass.get(index), star, plot, ds.planetColors.get(index),
+                ds.planetXCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU,
+                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU);
+
     }
 
     public void addPlanet(Planet planet) throws SolarSystemException {
@@ -91,13 +98,18 @@ public class SolarSystem implements SolarSystemInterface {
     }
 
     public void addPlot(SolarSystemPlot plot) throws SolarSystemException {
-        if (plot != null) {
+        if (this.plot != null) {
             throw new SolarSystemException("Plot already exists!");
         }
         this.plot = plot;
     }
 
-
+    public void addDataStorage(DataStorage ds) throws SolarSystemException {
+        if (this.ds != null) {
+            throw new SolarSystemException("DataStorage already exists!");
+        }
+        this.ds = ds;
+    }
 
     public HashMap<String, Planet> getPlanets() {
         return this.planets;
@@ -120,8 +132,11 @@ public class SolarSystem implements SolarSystemInterface {
         SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -5, 5,
                 -5, 5);
 
+        DataStorage dataStorage = new DataStorage();
+
         try {
             solarSystem.addPlot(plot);
+            solarSystem.addDataStorage(dataStorage);
         } catch (SolarSystemException ss) {
             ss.printStackTrace();
         }
@@ -134,27 +149,14 @@ public class SolarSystem implements SolarSystemInterface {
             exit(0);
         }
 
-        /*
-         * Only gonna worry about 1 planet for now while I debug this paint stuff
-         */
-        Planet earth = null, mars = null, mercury = null;
-        try {
-            earth = new Planet("Earth", 12.742 * Math.pow(10, 6), 149.6 * Math.pow(10, 9), 5.972 * Math.pow(10, 24),
-                    solarSystem.getStar(), plot, plot.colors[0], 0, 1);
-            mars = new Planet("Mars", 6786604, 1.5 * 149.6 * Math.pow(10, 9), 0.11 * 5.972 * Math.pow(10, 24),
-                    solarSystem.getStar(), plot, plot.colors[1], 1.5, 0);
-            mercury = new Planet("Mercury", 4877922, 0.39 * 149.6 * Math.pow(10, 9), 3.285 * Math.pow(10, 23),
-                    solarSystem.getStar(), plot, plot.colors[5], 0.39, 0);
-        } catch (SolarSystemException ss) {
-            ss.printStackTrace();
-        }
+        Planet earth = solarSystem.newPlanet("Earth");
+        Planet mars = solarSystem.newPlanet("Mars");
+        Planet mercury = solarSystem.newPlanet("Mercury");
 
-        //public Satellite(String name, double diameter, double distanceFromPlanet, double mass,
-        //                     SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY)
         //Need to redo the moon initial x
         //True distance from earth: 384400000 meters
-        Moon moon = new Moon("Moon", (1737.4 * 2) * 1000, 0.05 * AU,
-                earth.getMass() * 1.2298E-1, earth, plot, Color.GRAY, 0, 0.05 + earth.getY()/AU);
+        Satellite moon = new Satellite("Moon", (1737.4 * 2) * 1000, 0.05 * AU,
+                earth.getMass() * 1.2298E-1, earth, plot, Color.RED, earth.getX() + 0.05, earth.getY());
 
         try {
             solarSystem.addPlanet(earth);

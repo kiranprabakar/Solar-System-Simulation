@@ -80,7 +80,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
                 addPlanetsFrame.addWindowListener(new WindowAdapter() {	// remove this if you don't want the program
                     public void windowClosing(WindowEvent e) {		// to quit when close-box is clicked
-                        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                     }});
 
                 addPlanetsFrame.pack();

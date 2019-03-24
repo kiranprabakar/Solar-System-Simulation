@@ -6,16 +6,16 @@ public class Satellite extends SolarSystemBody {
     private SolarSystemPlot plot;
     private Color color;
 
-    public Satellite(String name, double diameter, double distanceFromPlanet, double mass,
+    public Satellite(String name, double diameter, double distanceFromBody, double mass,
                      SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY) {
-        super(name, diameter, distanceFromPlanet, mass, initX, initY);
+        super(name, diameter, distanceFromBody, mass, initX, initY);
         setType("Satellite");
         this.body = body;
         this.plot = plot;
         this.color = color;
     }
 
-    public double getDistanceFromPlanet() {
+    public double getDistanceFromBody() {
         return getDistanceFromCentralBody();
     }
 
@@ -99,6 +99,7 @@ public class Satellite extends SolarSystemBody {
              * This solves the blinking plot problem by only plotting fewer times
              */
             if (time % (dt * 1000000) == 0) {
+
                 plot.addPoint(Color.black, 5, prevX / AU + prevBodyX / AU, prevY / AU + prevBodyY / AU);
                 plot.addPoint(this.color, 5, relativeX / AU + body.getX() / AU, relativeY / AU + body.getY() / AU);
                 prevX = relativeX;
@@ -106,7 +107,9 @@ public class Satellite extends SolarSystemBody {
                 prevBodyX = body.getX();
                 prevBodyY = body.getY();
                 plot.repaint();
+
             }
+
         }
     }
 
