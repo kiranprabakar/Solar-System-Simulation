@@ -67,7 +67,7 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
         // (+1 is so gridlines show when they're at edges)
         this.controlPanel = new Panel();						// create a panel to hold the buttons
         this.plotFrame.add(controlPanel,BorderLayout.NORTH);	// put it at the top of the window
-        //Button clearButton = new Button("Clear");		// create a button to clear the plot
+        //Button options = new Button("Alter the Simulation");		// create a button to clear the plot
         /*clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { clearThePlot(); }
         });											// tell it what to do when the button is clicked

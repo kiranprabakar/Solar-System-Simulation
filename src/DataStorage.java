@@ -41,8 +41,10 @@ public class DataStorage {
     ArrayList<String> satelliteType;
     ArrayList<Double> satelliteDiameters;
     ArrayList<Double> satelliteDistancefromCentralBody;
+    ArrayList<Planet> satelliteCentralBody;
     ArrayList<Double> satelliteMass;
     ArrayList<Color> satelliteColors;
+    ArrayList<String> getSatelliteCentralBodyNames;
 
     /*
      * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
@@ -102,6 +104,8 @@ public class DataStorage {
         satelliteDistancefromCentralBody = new ArrayList<>(Arrays.asList(408E3, 384.4E6));
         satelliteMass = new ArrayList<>(Arrays.asList(420E3, 7.34767309E22));
         satelliteColors = new ArrayList<>(Arrays.asList(Color.blue, Color.gray));
+        satelliteCentralBody = new ArrayList<>();
+        getSatelliteCentralBodyNames = new ArrayList<>(Arrays.asList("Earth", "Earth"));
 
         /*
          * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body

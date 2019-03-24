@@ -5,6 +5,7 @@ public class Satellite extends SolarSystemBody {
     private SolarSystemBody body;
     private SolarSystemPlot plot;
     private Color color;
+    private boolean pause;
 
     public Satellite(String name, double diameter, double distanceFromBody, double mass,
                      SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY) {
@@ -47,6 +48,14 @@ public class Satellite extends SolarSystemBody {
         super.setY(initY);
     }
 
+    public synchronized boolean toPause() {
+        return pause;
+    }
+
+    public synchronized void pause() {
+        pause = true;
+    }
+
     public synchronized void orbit() {
 
         double time = 0;
@@ -79,7 +88,7 @@ public class Satellite extends SolarSystemBody {
         int count = 0;
 
         //mv^2/r = GmM/r^2
-        while (true) {
+        while (!toPause()) {
 
             relativeX += v_x * (dt);
             relativeY += v_y * (dt);

@@ -34,10 +34,6 @@ public class Planet extends SolarSystemBody {
                 && this.getDistanceFromCentralBody() < upperBound;
     }*/
 
-    /*public boolean getHabitability() {
-        return isHabitable;
-    }*/
-
     public Star getStar() {
         return star;
     }
@@ -52,6 +48,10 @@ public class Planet extends SolarSystemBody {
 
     public synchronized double getY() {
         return super.getY();
+    }
+
+    public synchronized Color getColor() {
+        return color;
     }
 
     public synchronized void setX(double initX) {
@@ -72,6 +72,14 @@ public class Planet extends SolarSystemBody {
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    public synchronized void pause() {
+        toPause = true;
+    }
+
+    public synchronized boolean isToPause() {
+        return toPause;
     }
 
     /*
@@ -114,7 +122,7 @@ public class Planet extends SolarSystemBody {
         double v_x = -velocity * Math.sin(theta);
 
         //mv^2/r = GmM/r^2
-        while (true) {
+        while (!isToPause()) {
 
 
             setX(getX() + v_x * (dt / 100));

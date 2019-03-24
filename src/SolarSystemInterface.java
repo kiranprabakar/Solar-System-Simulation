@@ -16,10 +16,16 @@ public interface SolarSystemInterface {
     double  dt = 1;
     double  timeLimit = 1000000000;
 
-    boolean speedUp = false;
+    int bodyLimit = 6;
+
+    int innerPlanetFactor = 1;//4;
+    int outerPlanetFactor = 1;//6;
+    int nepUrFactor = 1;//8;
 
     int plotWidth = 1000;
     int plotHeight = 1000;
+
+    int coordinateMax = 35;
 
     int controlWidth = 400;
     int controlHeight = 400;

@@ -81,11 +81,11 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
                 && other.getDistanceFromCentralBody() == getDistanceFromCentralBody() && other.getMass() == getMass();
     }
 
-    public boolean toPause() {
+    public synchronized boolean toPause() {
         return toPause;
     }
 
-    public void pause() {
+    public synchronized void pause() {
         toPause = true;
     }
 
