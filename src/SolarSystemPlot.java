@@ -148,7 +148,7 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
     /** Clears the plot and draws the axes and grid lines. */
     public synchronized void clearThePlot() {
         offScreenGraphics.setColor(Color.black);       //Set to black
-        offScreenGraphics.fillRect(0,0,plotWidth+1,plotHeight+1);	// paint the background white
+        offScreenGraphics.fillRect(0,0,plotWidth+1,plotHeight+1);	// paint the background black
         firstPoint = true;
     }
 

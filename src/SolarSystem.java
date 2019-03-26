@@ -52,20 +52,10 @@ public class SolarSystem implements SolarSystemInterface {
             //Add code to add new planet here (also will need to update database here)
         }
 
-        int divisor;
-
-        if (ds.planetDistancefromCentralBody.get(index) < ds.planetDistancefromCentralBody.get(3)) {
-            divisor = innerPlanetFactor;
-        } else if (ds.planetDistancefromCentralBody.get(index) < ds.planetDistancefromCentralBody.get(6)) {
-            divisor = outerPlanetFactor;
-        } else {
-            divisor = nepUrFactor;
-        }
-
         Planet planet = new Planet(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),
                 ds.planetMass.get(index), star, plot, ds.planetColors.get(index),
-                ds.planetXCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU / divisor,
-                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU / divisor);
+                ds.planetXCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU,
+                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU);
 
         ds.satelliteCentralBody.add(planet);
 
@@ -85,7 +75,7 @@ public class SolarSystem implements SolarSystemInterface {
 
     }
 
-    public Satellite newSatellite(String name) {
+    public Satellite newSatellite(String name) throws SolarSystemException {
 
         int index = ds.satelliteNames.indexOf(name);
 
@@ -103,16 +93,20 @@ public class SolarSystem implements SolarSystemInterface {
             return null;
         }
 
-        int i = 0;
+        boolean found = false;
+        Planet planet = null;
 
-        while (i < ds.satelliteCentralBody.size()) {
-            if (ds.satelliteCentralBody.get(i).retName().equals(ds.getSatelliteCentralBodyNames.get(index))) {
+        for (int i = 0; i < ds.satelliteCentralBody.size(); i++) {
+            if (ds.satelliteCentralBody.get(i).retName().equals(ds.satelliteCentralBodyNames.get(index))) {
+                found = true;
+                planet = ds.satelliteCentralBody.get(i);
                 break;
             }
-            i++;
         }
 
-        Planet planet = ds.satelliteCentralBody.get(i);
+        if (!found) {
+            throw new SolarSystemException();
+        }
 
         return new Satellite(name, ds.satelliteDiameters.get(index), ds.satelliteDistancefromCentralBody.get(index),
                 ds.satelliteMass.get(index), planet, plot, ds.satelliteColors.get(index),
@@ -259,7 +253,6 @@ public class SolarSystem implements SolarSystemInterface {
         }
 
         for (String name : getPlanets().keySet()) {
-            System.out.println(name);
             getPlanets().get(name).pause();
         }
 
@@ -267,12 +260,33 @@ public class SolarSystem implements SolarSystemInterface {
             getSatellites().get(name).pause();
         }
 
-        getPlot().clearThePlot();
+        executorService.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
+                    System.err.println("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            executorService.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
 
-        executorService.shutdown();
-        System.out.println(executorService.isTerminated());
+        plot.clearThePlot();
+        plot.repaint();
+
+        star = null;
+
+        planets = new HashMap<>();
+
+        satellites = new HashMap<>();
 
     }
+
 
     public ExecutorService getExecutorService() {
         return executorService;
@@ -290,6 +304,7 @@ public class SolarSystem implements SolarSystemInterface {
 
         SolarSystemGUI gui = new SolarSystemGUI(solarSystem);
 
+        //Title, xMin, xMax, yMin, yMax
         SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -coordinateMax, coordinateMax,
                 -coordinateMax, coordinateMax);
 

@@ -6,14 +6,51 @@ public class Satellite extends SolarSystemBody {
     private SolarSystemPlot plot;
     private Color color;
     private boolean pause;
+    private DataStorage ds;
+    private int pointSize;
+    private double divisor;
 
     public Satellite(String name, double diameter, double distanceFromBody, double mass,
                      SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY) {
         super(name, diameter, distanceFromBody, mass, initX, initY);
-        setType("Satellite");
         this.body = body;
         this.plot = plot;
         this.color = color;
+        ds = new DataStorage();
+        setType();
+        setPointSize();
+        setDivisor();
+    }
+
+    public void setDivisor() {
+        if (getType().equals("Satellite")) {
+            divisor = satelliteDivisor;
+        } else {
+            divisor = moonDivisor;
+        }
+    }
+
+    private void setType() {
+        int index = ds.satelliteNames.indexOf(retName());
+        String string = ds.satelliteType.get(index);
+        super.setType(string);
+    }
+
+    public double getDivisor() {
+        return divisor;
+    }
+
+    public void setPointSize() {
+        int i = ds.satelliteNames.indexOf(retName());
+        if (i < 0) {
+            //Add code if name does not exist
+        } else {
+            pointSize = ds.satellitePointSizes.get(i);
+        }
+    }
+
+    public int getPointSize() {
+        return pointSize;
     }
 
     public double getDistanceFromBody() {
@@ -56,8 +93,7 @@ public class Satellite extends SolarSystemBody {
         pause = true;
     }
 
-    public synchronized void orbit() {
-
+    public void run() {
         double time = 0;
 
         double radiusDistance = this.getDistanceFromCentralBody();
@@ -109,8 +145,14 @@ public class Satellite extends SolarSystemBody {
              */
             if (time % (dt * 1000000) == 0) {
 
-                plot.addPoint(Color.black, 5, prevX / AU + prevBodyX / AU, prevY / AU + prevBodyY / AU);
-                plot.addPoint(this.color, 5, relativeX / AU + body.getX() / AU, relativeY / AU + body.getY() / AU);
+                plot.addPoint(Color.black, getPointSize(),
+                        prevX / AU / divisor + prevBodyX / body.getDivisor() / AU, prevY / AU / divisor + prevBodyY / body.getDivisor() / AU);
+
+                plot.addPoint(this.color, getPointSize(),
+                        relativeX / AU / divisor + body.getX() / body.getDivisor() / AU, relativeY / AU / divisor + body.getY() / body.getDivisor() / AU);
+
+                double wfj = relativeX / AU / divisor + body.getX() / AU;
+                double eryfhbdj = relativeY / AU / divisor + body.getY() / AU;
                 prevX = relativeX;
                 prevY = relativeY;
                 prevBodyX = body.getX();
@@ -120,10 +162,9 @@ public class Satellite extends SolarSystemBody {
             }
 
         }
-    }
 
-    public void run() {
-        orbit();
+        Thread.currentThread().interrupt();
+
     }
 
 

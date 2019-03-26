@@ -18,9 +18,12 @@ public interface SolarSystemInterface {
 
     int bodyLimit = 6;
 
-    int innerPlanetFactor = 1;//4;
-    int outerPlanetFactor = 1;//6;
-    int nepUrFactor = 1;//8;
+    double innerPlanetDivisor = 0.5;
+    double outerPlanetDivisor = 1;
+    double nepUrDivisor = 1;
+
+    double satelliteDivisor = 0.05;
+    double moonDivisor = 1;
 
     int plotWidth = 1000;
     int plotHeight = 1000;

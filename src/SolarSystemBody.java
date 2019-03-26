@@ -12,6 +12,7 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
     private double x;
     private double y;
     private boolean toPause;
+    private double divisor;
 
     public SolarSystemBody(String name, double diameter, double distanceFromCentralBody, double mass, double initX, double initY) {
         this.name = name;
@@ -22,6 +23,11 @@ public class SolarSystemBody implements SolarSystemInterface, Runnable {
         x = initX * AU;
         y = initY * AU;
         toPause = false;
+        divisor = 1;
+    }
+
+    public double getDivisor() {
+        return divisor;
     }
 
     public String getType() {
