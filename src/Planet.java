@@ -17,6 +17,10 @@ public class Planet extends SolarSystemBody {
     private SolarSystemPlot plot;
 
     private Color color;
+    private int pointSize;
+    private DataStorage ds;
+
+    private double divisor;
 
     public Planet(String name, double diameter, double distanceFromStar, double mass, Star star,
                   SolarSystemPlot plot, Color color, double initX, double initY) {
@@ -27,12 +31,41 @@ public class Planet extends SolarSystemBody {
         this.plot = plot;
         this.color = color;
         toPause = false;
+
+        ds = new DataStorage();
+
+        setPointSize();
+        setDivisor(distanceFromStar);
+
     }
 
     /*public boolean isHabitable(double lowerBound, double upperBound) {
         return this.getDistanceFromCentralBody() > lowerBound
                 && this.getDistanceFromCentralBody() < upperBound;
     }*/
+
+    public void setDivisor(double distance) {
+
+        if (ds.planetDistancefromCentralBody.indexOf(distance) <= 3) {
+            divisor = innerPlanetDivisor;
+        } else if (ds.planetDistancefromCentralBody.indexOf(distance) <= 5) {
+            divisor = outerPlanetDivisor;
+        } else {
+            divisor = nepUrDivisor;
+        }
+
+    }
+
+    public double getDivisor() {
+        return divisor;
+    }
+
+    public void setPointSize() {
+
+        int i = ds.planetNames.indexOf(retName());
+        pointSize = ds.planetPointSizes.get(i);
+
+    }
 
     public Star getStar() {
         return star;
@@ -82,6 +115,10 @@ public class Planet extends SolarSystemBody {
         return toPause;
     }
 
+    public int getPointSize() {
+        return pointSize;
+    }
+
     /*
      * Orbit calculated using regular euler formula
      * Possibilities for improvement:
@@ -95,7 +132,7 @@ public class Planet extends SolarSystemBody {
      *
      *  Might use Verlet Algorithm instead of vis viva
      */
-    public synchronized void orbit() {
+    public void run() {
 
         double time = 0;
         //double dt = SolarSystemInterface.dt / 100;
@@ -121,7 +158,6 @@ public class Planet extends SolarSystemBody {
         double v_y = velocity * Math.cos(theta);
         double v_x = -velocity * Math.sin(theta);
 
-        //mv^2/r = GmM/r^2
         while (!isToPause()) {
 
 
@@ -140,12 +176,10 @@ public class Planet extends SolarSystemBody {
             time += dt;
 
             //This solves the blinking plot problem by only plotting fewer times
-            //time += SolarSystemInterface.dt;
-
             if (time % (SolarSystemInterface.dt * 1000000) == 0) {
 
-                plot.addPoint(Color.black, 7, prevX / AU, prevY / AU);
-                plot.addPoint(this.color, 7, getX() / AU, getY() / AU);
+                plot.addPoint(Color.black, pointSize, prevX / AU / divisor, prevY / AU / divisor);
+                plot.addPoint(this.color, pointSize, getX() / AU / divisor, getY() / AU / divisor);
                 prevX = getX();
                 prevY = getY();
                 plot.repaint();
@@ -185,10 +219,8 @@ public class Planet extends SolarSystemBody {
             }*/
         }
 
-    }
+        Thread.currentThread().interrupt();
 
-    public void run() {
-        orbit();
     }
 
 }

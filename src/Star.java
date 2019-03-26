@@ -16,6 +16,9 @@ public class Star extends SolarSystemBody {
     private Color color;
 
     private boolean pause;
+    private int pointSize;
+
+    private DataStorage ds;
 
     public Star(String name, double diameter, double mass, SolarSystemPlot plot, Color color) {
 
@@ -24,10 +27,24 @@ public class Star extends SolarSystemBody {
         this.plot = plot;
         this.color = color;
 
+        ds = new DataStorage();
+        setPointSize();
+
     }
 
     public Color getColor() {
         return color;
+    }
+
+    public void setPointSize() {
+
+        int i = ds.starNames.indexOf(retName());
+        pointSize = ds.starPointSizes.get(i);
+
+    }
+
+    public int getPointSize() {
+        return pointSize;
     }
 
     @Override
@@ -42,9 +59,11 @@ public class Star extends SolarSystemBody {
 
     public void run() {
 
-        while (!pause) {
-            plot.addPoint(this.color, 10, 0, 0);
+        while (!toPause()) {
+            plot.addPoint(this.color, pointSize, 0, 0);
         }
+
+        Thread.currentThread().interrupt();
 
     }
 }

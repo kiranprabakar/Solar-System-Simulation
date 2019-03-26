@@ -86,9 +86,16 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                  * Working but needs debugging
                  */
 
-                alert("Cannot stop this right now! Please click the X button to end the application.");
+                //alert("Cannot stop this right now! Please click the X button to end the application.");
 
-                //solarSystem.stopSimulation();
+                if (started) {
+                    solarSystem.stopSimulation();
+                    started = false;
+                    starAdded = false;
+                } else {
+                    alert("Simulation is not running!");
+                }
+
             }
         });
 
@@ -133,9 +140,9 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Mercury");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
-                                        alert("Added Mercury");
                                         ++bodyCount;
                                     } else {
                                         alert("Sorry, no more bodies can be added!");
@@ -145,14 +152,13 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                         Planet planet = solarSystem.newPlanet("Mercury");
                                         solarSystem.addPlanet(planet);
                                         solarSystem.getExecutorService().execute(planet);
-                                        alert("Added Mercury");
                                         ++bodyCount;
                                     } else {
                                         alert("Sorry, no more bodies can be added!");
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -165,7 +171,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Venus");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
                                         ++bodyCount;
                                     } else {
@@ -182,7 +189,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -195,7 +202,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Earth");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
                                         ++bodyCount;
                                     } else {
@@ -212,7 +220,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -225,7 +233,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Mars");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
                                         ++bodyCount;
                                     } else {
@@ -242,7 +251,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -255,7 +264,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Jupiter");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
                                         ++bodyCount;
                                     } else {
@@ -272,7 +282,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -285,7 +295,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Saturn");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
                                         ++bodyCount;
                                     } else {
@@ -302,7 +313,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -315,7 +326,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Uranus");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
                                         ++bodyCount;
                                     } else {
@@ -332,7 +344,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -345,7 +357,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     if (bodyCount < bodyLimit) {
                                         Planet planet = solarSystem.newPlanet("Neptune");
                                         solarSystem.addPlanet(planet);
-                                        solarSystem.getPlot().addPoint(planet.getColor(), 7, planet.getX() / AU, planet.getY() / AU);
+                                        solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
                                         solarSystem.getPlot().repaint();
                                         ++bodyCount;
                                     } else {
@@ -362,7 +375,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     }
                                 }
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this planet already exists");
                             }
                         }
                     }));
@@ -410,7 +423,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                 Star star = solarSystem.newStar("Sun");
                                 if (!started) {
                                     solarSystem.addStar(star);
-                                    solarSystem.getPlot().addPoint(star.getColor(), 10, star.getX(), star.getY());
+                                    solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(), star.getX(), star.getY());
                                     solarSystem.getPlot().repaint();
                                     ++bodyCount;
                                 } else {
@@ -420,7 +433,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                 }
                                 starAdded = true;
                             } catch (SolarSystemException ss) {
-                                ss.printStackTrace();
+                                alert("Sorry, this star already exists");
                             }
 
                         }
@@ -442,10 +455,10 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                     alert("Star already exists!");
                 }
             }
-        });// tell it what to do when the button is clicked
+        });
         this.controlPanel.add(addStar);
 
-        addSatelliteMoon = new Button("Add Satellite or Moon");		// create a button to clear the plot
+        addSatelliteMoon = new Button("Add Satellite or Moon");
         addSatelliteMoon.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (starAdded) {
@@ -474,6 +487,44 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
                             addISS = new Button("ISS");
                             addCustomSatellite = new Button("Custom");
+
+                            addISS.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    try {
+                                        if (!started) {
+                                            if (bodyCount < bodyLimit) {
+                                                try {
+                                                    Satellite satellite = solarSystem.newSatellite("ISS");
+                                                    solarSystem.addSatellite(satellite);
+                                                    solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
+                                                            satellite.getX() / AU / satellite.getDivisor(), satellite.getY() / AU / satellite.getDivisor());
+                                                    solarSystem.getPlot().repaint();
+                                                    ++bodyCount;
+                                                } catch (Exception s) {
+                                                    s.printStackTrace();
+                                                    alert("Planet has not been added yet!");
+                                                }
+                                            } else {
+                                                alert("Sorry, no more bodies can be added!");
+                                            }
+                                        } else {
+                                            try {
+                                                Satellite satellite = solarSystem.newSatellite("ISS");
+                                                solarSystem.addSatellite(satellite);
+                                                solarSystem.getExecutorService().execute(satellite);
+                                                ++bodyCount;
+                                            } catch (Exception s) {
+                                                System.out.println("...");
+
+                                                alert("Planet has not been added yet!");
+                                            }
+                                        }
+                                    } catch (Exception ss) {
+                                        alert("Sorry, this satellite already exists");
+                                    }
+                                }
+                            });
 
                             addSatellitePanel.add(addISS);
                             addSatellitePanel.add(addCustomSatellite);
@@ -510,6 +561,41 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
                             addMoonPanel.add(addMoonOfEarth);
                             addMoonPanel.add(addCustomMoon);
+
+                            addMoonOfEarth.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    try {
+                                        if (!started) {
+                                            if (bodyCount < bodyLimit) {
+                                                try {
+                                                    Satellite satellite = solarSystem.newSatellite("Moon");
+                                                    solarSystem.addSatellite(satellite);
+                                                    solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
+                                                            satellite.getX() / AU / satellite.getDivisor(), satellite.getY() / AU / satellite.getDivisor());
+                                                    solarSystem.getPlot().repaint();
+                                                    ++bodyCount;
+                                                } catch (Exception s) {
+                                                    alert("Planet has not been added yet!");
+                                                }
+                                            } else {
+                                                alert("Sorry, no more bodies can be added!");
+                                            }
+                                        } else {
+                                            try {
+                                                Satellite satellite = solarSystem.newSatellite("Moon");
+                                                solarSystem.addSatellite(satellite);
+                                                solarSystem.getExecutorService().execute(satellite);
+                                                ++bodyCount;
+                                            } catch (Exception s) {
+                                                alert("Planet has not been added yet!");
+                                            }
+                                        }
+                                    } catch (Exception ss) {
+                                        alert("Sorry, this satellite already exists");
+                                    }
+                                }
+                            });
 
                             addMoonFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
                                 public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
@@ -549,7 +635,6 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
         });// tell it what to do when the button is clicked
 
         this.controlPanel.add(addSatelliteMoon);
-        //rehtf
 
         controlFrame.pack();
 
@@ -557,7 +642,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
         controlFrame.setVisible(true);
     }
 
-    public void alert(String alert) {
+    private void alert(String alert) {
 
         JOptionPane.showMessageDialog(null, alert);
 

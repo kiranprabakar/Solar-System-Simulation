@@ -9,6 +9,7 @@ public class DataStorage {
     ArrayList<Double> planetDistancefromCentralBody;
     ArrayList<Double> planetMass;
     ArrayList<Color> planetColors;
+    ArrayList<Integer> planetPointSizes;
 
     /*
      * Multiply the x and y coordinate multiples by distance in AU to find the true coordinates for each body
@@ -25,6 +26,7 @@ public class DataStorage {
     ArrayList<Double> starDistancefromCentralBody;
     ArrayList<Double> starMass;
     ArrayList<Color> starColors;
+    ArrayList<Integer> starPointSizes;
 
     /*
      * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
@@ -44,7 +46,8 @@ public class DataStorage {
     ArrayList<Planet> satelliteCentralBody;
     ArrayList<Double> satelliteMass;
     ArrayList<Color> satelliteColors;
-    ArrayList<String> getSatelliteCentralBodyNames;
+    ArrayList<String> satelliteCentralBodyNames;
+    ArrayList<Integer> satellitePointSizes;
 
     /*
      * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
@@ -68,6 +71,9 @@ public class DataStorage {
                 6.39E23, 1.898E27, 5.683E26, 8.681E25, 1.024E25));
          planetColors = new ArrayList<>(Arrays.asList(Color.gray, Color.magenta, Color.blue,
                 Color.red, Color.orange, Color.pink, Color.cyan, Color.blue));
+         planetPointSizes = new ArrayList<>(Arrays.asList(5, 5, 5,
+                 5, 12, 10, 8, 7));
+
 
         /*
          * Multiply the x and y coordinate multiples by distance in AU to find the true coordinates for each body
@@ -78,6 +84,7 @@ public class DataStorage {
                 -1, 0, 1, 0, -1));
 
 
+
         /*
          * This is the dataset for the stars
          */
@@ -86,6 +93,7 @@ public class DataStorage {
          starDistancefromCentralBody = new ArrayList<>(Arrays.asList(0.00, 0.00));
          starMass = new ArrayList<>(Arrays.asList(1.989E30, 2.188E31));
          starColors = new ArrayList<>(Arrays.asList(Color.yellow, Color.red));
+         starPointSizes = new ArrayList<>(Arrays.asList(15, 20));
 
         /*
          * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
@@ -105,7 +113,8 @@ public class DataStorage {
         satelliteMass = new ArrayList<>(Arrays.asList(420E3, 7.34767309E22));
         satelliteColors = new ArrayList<>(Arrays.asList(Color.blue, Color.gray));
         satelliteCentralBody = new ArrayList<>();
-        getSatelliteCentralBodyNames = new ArrayList<>(Arrays.asList("Earth", "Earth"));
+        satelliteCentralBodyNames = new ArrayList<>(Arrays.asList("Earth", "Earth"));
+        satellitePointSizes = new ArrayList<>(Arrays.asList(2,3));
 
         /*
          * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
