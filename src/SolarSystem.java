@@ -55,7 +55,7 @@ public class SolarSystem implements SolarSystemInterface {
         Planet planet = new Planet(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),
                 ds.planetMass.get(index), star, plot, ds.planetColors.get(index),
                 ds.planetXCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU,
-                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU);
+                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU, ds);
 
         ds.satelliteCentralBody.add(planet);
 
@@ -71,7 +71,7 @@ public class SolarSystem implements SolarSystemInterface {
             //Add code to add new star here (also will need to update database here)
         }
 
-        return new Star(name, ds.starDiameters.get(index), ds.starMass.get(index), plot, ds.starColors.get(index));
+        return new Star(name, ds.starDiameters.get(index), ds.starMass.get(index), plot, ds.starColors.get(index), ds);
 
     }
 
@@ -111,7 +111,7 @@ public class SolarSystem implements SolarSystemInterface {
         return new Satellite(name, ds.satelliteDiameters.get(index), ds.satelliteDistancefromCentralBody.get(index),
                 ds.satelliteMass.get(index), planet, plot, ds.satelliteColors.get(index),
                 ds.satelliteXCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU,
-                ds.satelliteYCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU);
+                ds.satelliteYCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU, ds);
 
 
     }
@@ -285,12 +285,219 @@ public class SolarSystem implements SolarSystemInterface {
 
         satellites = new HashMap<>();
 
+        ds.satelliteCentralBody = new ArrayList<>();
+
     }
 
 
     public ExecutorService getExecutorService() {
         return executorService;
     }
+
+
+
+    public Planet createCustomPlanet(String characteristics) throws SolarSystemException{
+
+        if (characteristics == null || characteristics.length() == 0) {
+            throw new SolarSystemException("No characteristic String found!");
+        }
+
+        String[] attributes = characteristics.split(",");
+
+        if (attributes.length != 5) {
+            throw new SolarSystemException("Wrong number of characterisitcs entered!");
+        }
+
+        for (int i = 0; i < attributes.length; i++) {
+            attributes[i] = attributes[i].substring(1);
+        }
+
+        if (ds.planetNames.indexOf(attributes[4]) < 0) {
+            throw new SolarSystemException("Default planet does not exist!");
+        }
+
+        String name = attributes[0];
+        double diameter, dist, mass;
+
+        try {
+            diameter = Double.parseDouble(attributes[1]);
+
+            dist = Double.parseDouble(attributes[2]);
+
+            mass = Double.parseDouble(attributes[3]);
+        } catch (Exception e) {
+            throw new SolarSystemException("The diameter, distance, and mass fields must all be doubles!");
+        }
+
+        Color color = ds.planetColors.get(ds.planetNames.indexOf(attributes[4]));
+
+        ds.planetNames.add(name);
+        ds.planetDiameters.add(diameter);
+        ds.planetDistancefromCentralBody.add(dist);
+        ds.planetMass.add(mass);
+        ds.planetColors.add(color);
+        ds.planetXCoordinateSection.add(1);
+        ds.planetYCoordinateSection.add(0);
+        ds.planetPointSizes.add(ds.planetPointSizes.get(ds.planetNames.indexOf(attributes[4])));
+
+        int index = ds.planetNames.indexOf(name);
+
+        Planet planet = new Planet(name, diameter, dist, mass, star, plot, color,
+                ds.planetXCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU,
+                ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU, ds);
+
+        ds.satelliteCentralBody.add(planet);
+
+        return planet;
+
+    }
+
+    public Star createCustomStar(String characteristics) throws SolarSystemException {
+
+        if (characteristics == null || characteristics.length() == 0) {
+            throw new SolarSystemException("No characteristic String found!");
+        }
+
+        String[] attributes = characteristics.split(",");
+
+        if (attributes.length != 4) {
+            throw new SolarSystemException("Wrong number of characterisitcs entered!");
+        }
+
+        for (int i = 0; i < attributes.length; i++) {
+            attributes[i] = attributes[i].substring(1);
+        }
+
+        String name = attributes[0];
+        double diameter, mass;
+
+        try {
+            diameter = Double.parseDouble(attributes[1]);
+            mass = Double.parseDouble(attributes[2]);
+        } catch (Exception e) {
+            throw new SolarSystemException("The diameter and mass fields must both be doubles!");
+        }
+
+        Color color = null;
+
+        for (int i = 0; i < starTypes.length; i++) {
+            if (attributes[3].equals(starTypes[i])) {
+                color = starColors[i];
+                break;
+            }
+        }
+
+        if (color == null) {
+            throw new SolarSystemException("Star type is invalid!");
+        }
+
+        ds.starNames.add(name);
+        ds.starDiameters.add(diameter);
+        ds.starMass.add(mass);
+        ds.starColors.add(color);
+
+        switch (attributes[3]) {
+
+            case "Main sequence":
+                ds.starPointSizes.add(15);
+                break;
+            case "Red giant":
+                ds.starPointSizes.add(20);
+                break;
+            case "White dwarf":
+                ds.starPointSizes.add(10);
+                break;
+            default:
+                throw new SolarSystemException("Invalid type!");
+
+        }
+
+        return new Star(name, diameter, mass, plot, color, ds);
+
+    }
+
+    public Satellite createCustomSatellite(String characteristics) throws SolarSystemException{
+
+        if (characteristics == null || characteristics.length() == 0) {
+            throw new SolarSystemException("No characteristic String found!");
+        }
+
+        String[] attributes = characteristics.split(",");
+
+        if (attributes.length != 6) {
+            throw new SolarSystemException("Wrong number of characterisitcs entered!");
+        }
+
+        for (int i = 0; i < attributes.length; i++) {
+            attributes[i] = attributes[i].substring(1);
+        }
+
+        if (ds.planetNames.indexOf(attributes[4]) < 0) {
+            throw new SolarSystemException("Planet does not exist!");
+        }
+
+        String name = attributes[0];
+        double diameter, dist, mass;
+
+        try {
+            diameter = Double.parseDouble(attributes[1]);
+
+            dist = Double.parseDouble(attributes[2]);
+
+            mass = Double.parseDouble(attributes[3]);
+        } catch (Exception e) {
+            throw new SolarSystemException("The diameter, distance, and mass fields must all be doubles!");
+        }
+
+        Color color = null;
+
+        switch(attributes[5]) {
+
+            case "White":
+                color = Color.white;
+                break;
+            case "Gray":
+                color = Color.white;
+                break;
+            default:
+                throw new SolarSystemException("Invalid Color!");
+
+        }
+
+        ds.satelliteNames.add(name);
+        ds.satelliteDiameters.add(diameter);
+        ds.satelliteDistancefromCentralBody.add(dist);
+        ds.satelliteMass.add(mass);
+        ds.satelliteColors.add(color);
+        ds.satelliteXCoordinateSection.add(0);
+        ds.satelliteYCoordinateSection.add(1);
+        ds.satellitePointSizes.add(3);
+
+        int index = ds.planetNames.indexOf(name);
+
+        boolean found = false;
+        Planet planet = null;
+
+        for (int i = 0; i < ds.satelliteCentralBody.size(); i++) {
+            if (ds.satelliteCentralBody.get(i).retName().equals(ds.satelliteCentralBodyNames.get(index))) {
+                found = true;
+                planet = ds.satelliteCentralBody.get(i);
+                break;
+            }
+        }
+
+        if (!found) {
+            throw new SolarSystemException("Central planet not found!");
+        }
+
+        Satellite satellite = new Satellite(name, diameter, dist, mass, planet, plot, color,
+                ds.satelliteXCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU,
+                ds.satelliteYCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU, ds);
+
+        return satellite;
+
+    }
+
 
 
     /**

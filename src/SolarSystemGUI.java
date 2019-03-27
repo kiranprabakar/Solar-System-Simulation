@@ -26,6 +26,9 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
     private Frame addMoonFrame;
     private Panel addMoonPanel;
 
+    private Frame addCustomFrame;
+    private JTextArea addCustomText;
+
     private Button start, stop;
     private Button addMercury, addVenus, addEarth, addMars, addJupiter, addSaturn, addUranus, addNeptune, addCustomPlanet;
     private Button addSun, addCustomStar;
@@ -34,6 +37,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
     private int bodyCount;
     private boolean started, starAdded;
+
+    private String text;
 
     public SolarSystemGUI(SolarSystem solarSystem) {
 
@@ -81,17 +86,11 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                /*
-                 * Need to figure out how to stop the threads immediately
-                 * Working but needs debugging
-                 */
-
-                //alert("Cannot stop this right now! Please click the X button to end the application.");
-
                 if (started) {
                     solarSystem.stopSimulation();
                     started = false;
                     starAdded = false;
+                    bodyCount = 0;
                 } else {
                     alert("Simulation is not running!");
                 }
@@ -380,6 +379,62 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                         }
                     }));
 
+                    addCustomPlanet.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            addCustomFrame = new Frame("Custom Planet");
+                            addCustomText = new JTextArea(customPlanetIntro, 8, 75);
+                            addCustomFrame.add(addCustomText);
+                            addCustomFrame.pack();
+                            addCustomFrame.setVisible(true);
+
+
+                            addCustomFrame.addWindowListener(new WindowAdapter() {
+                                @Override
+                                public void windowClosing(WindowEvent e) {
+
+                                    text = addCustomText.getText();
+                                    String characteristics = text.substring(text.lastIndexOf("\n") + 1);
+
+                                    try {
+                                        if (!started) {
+                                            if (bodyCount < bodyLimit) {
+                                                try {
+                                                    Planet planet = solarSystem.createCustomPlanet(characteristics);
+                                                    solarSystem.addPlanet(planet);
+                                                    solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),
+                                                            planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
+                                                    solarSystem.getPlot().repaint();
+                                                    ++bodyCount;
+                                                } catch (SolarSystemException ss) {
+                                                    ss.printStackTrace();
+                                                }
+                                            } else {
+                                                alert("Sorry, no more bodies can be added!");
+                                            }
+                                        } else {
+                                            if (bodyCount < bodyLimit) {
+                                                Planet planet = solarSystem.createCustomPlanet(characteristics);
+                                                solarSystem.addPlanet(planet);
+                                                solarSystem.getExecutorService().execute(planet);
+                                                ++bodyCount;
+                                            } else {
+                                                alert("Sorry, no more bodies can be added!");
+                                            }
+                                        }
+                                    } catch (SolarSystemException ss) {
+                                        alert("Sorry, this planet already exists");
+                                    }
+
+                                    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                                    addCustomFrame.setVisible(false);
+                                    addCustomFrame.dispose();
+                                }
+                            });
+
+                        }
+                    });
+
                     addPlanetsFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
                         public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
                             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -438,6 +493,67 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
                         }
                     }));
+
+                    addCustomStar.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            addCustomFrame = new Frame("Custom Star");
+                            addCustomText = new JTextArea(customStarIntro, 8, 75);
+                            addCustomFrame.add(addCustomText);
+                            addCustomFrame.pack();
+                            addCustomFrame.setVisible(true);
+
+
+                            addCustomFrame.addWindowListener(new WindowAdapter() {
+                                @Override
+                                public void windowClosing(WindowEvent e) {
+
+                                    text = addCustomText.getText();
+                                    String characteristics = text.substring(text.lastIndexOf("\n") + 1);
+
+                                    try {
+                                        if (!started) {
+                                            if (bodyCount < bodyLimit) {
+                                                Star star = solarSystem.createCustomStar(characteristics);
+                                                try {
+                                                    solarSystem.addStar(star);
+                                                    solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(),
+                                                            0,0);
+                                                    solarSystem.getPlot().repaint();
+                                                    starAdded = true;
+                                                    ++bodyCount;
+                                                } catch (SolarSystemException ss) {
+                                                    ss.printStackTrace();
+                                                }
+                                            } else {
+                                                alert("Sorry, no more bodies can be added!");
+                                            }
+                                        } else {
+                                            if (bodyCount < bodyLimit) {
+                                                try {
+                                                    Star star = solarSystem.createCustomStar(characteristics);
+                                                    solarSystem.addStar(star);
+                                                    solarSystem.getExecutorService().execute(star);
+                                                    starAdded = true;
+                                                    ++bodyCount;
+                                                } catch (SolarSystemException ss) {
+                                                    ss.printStackTrace();
+                                                }
+                                            } else {
+                                                alert("Sorry, no more bodies can be added!");
+                                            }
+                                        }
+                                    } catch (SolarSystemException ss) {
+                                        alert("Sorry, this star already exists");
+                                    }
+
+                                    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                                    addCustomFrame.setVisible(false);
+                                    addCustomFrame.dispose();
+                                }
+                            });
+                        }
+                    });
 
                     addStarFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
                         public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
@@ -498,7 +614,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                                     Satellite satellite = solarSystem.newSatellite("ISS");
                                                     solarSystem.addSatellite(satellite);
                                                     solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
-                                                            satellite.getX() / AU / satellite.getDivisor(), satellite.getY() / AU / satellite.getDivisor());
+                                                            satellite.getX() / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
+                                                            satellite.getY() / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
                                                     solarSystem.getPlot().repaint();
                                                     ++bodyCount;
                                                 } catch (Exception s) {
@@ -523,6 +640,65 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     } catch (Exception ss) {
                                         alert("Sorry, this satellite already exists");
                                     }
+                                }
+                            });
+
+                            addCustomSatellite.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    addCustomFrame = new Frame("Custom Star");
+                                    addCustomText = new JTextArea(customSatelliteIntro, 8, 75);
+                                    addCustomFrame.add(addCustomText);
+                                    addCustomFrame.pack();
+                                    addCustomFrame.setVisible(true);
+
+
+                                    addCustomFrame.addWindowListener(new WindowAdapter() {
+                                        @Override
+                                        public void windowClosing(WindowEvent e) {
+
+                                            text = addCustomText.getText();
+                                            String characteristics = text.substring(text.lastIndexOf("\n") + 1);
+
+                                            try {
+                                                if (!started) {
+                                                    if (bodyCount < bodyLimit) {
+                                                        try {
+                                                            Satellite satellite = solarSystem.createCustomSatellite(characteristics);
+                                                            solarSystem.addSatellite(satellite);
+                                                            solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
+                                                                    0,0);
+                                                            solarSystem.getPlot().repaint();
+                                                            ++bodyCount;
+                                                        } catch (SolarSystemException ss) {
+                                                            ss.printStackTrace();
+                                                        }
+                                                    } else {
+                                                        alert("Sorry, no more bodies can be added!");
+                                                    }
+                                                } else {
+                                                    if (bodyCount < bodyLimit) {
+                                                        try {
+                                                            Satellite satellite = solarSystem.createCustomSatellite(characteristics);
+                                                            solarSystem.addSatellite(satellite);
+                                                            solarSystem.getExecutorService().execute(satellite);
+                                                            ++bodyCount;
+                                                        } catch (SolarSystemException ss) {
+                                                            ss.printStackTrace();
+                                                        }
+                                                    } else {
+                                                        alert("Sorry, no more bodies can be added!");
+                                                    }
+                                                }
+                                            } catch (Exception ss) {
+                                                ss.printStackTrace();
+                                            }
+
+                                            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                                            addCustomFrame.setVisible(false);
+                                            addCustomFrame.dispose();
+                                        }
+                                    });
                                 }
                             });
 
@@ -572,10 +748,12 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                                     Satellite satellite = solarSystem.newSatellite("Moon");
                                                     solarSystem.addSatellite(satellite);
                                                     solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
-                                                            satellite.getX() / AU / satellite.getDivisor(), satellite.getY() / AU / satellite.getDivisor());
+                                                            satellite.relativeX / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
+                                                            satellite.relativeY / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
                                                     solarSystem.getPlot().repaint();
                                                     ++bodyCount;
                                                 } catch (Exception s) {
+                                                    s.printStackTrace();
                                                     alert("Planet has not been added yet!");
                                                 }
                                             } else {
