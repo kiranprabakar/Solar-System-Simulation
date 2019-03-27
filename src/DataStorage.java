@@ -34,6 +34,8 @@ public class DataStorage {
     ArrayList<Integer> starXCoordinateSection;
     ArrayList<Integer> starYCoordinateSection;
 
+    ArrayList<String> starTypes;
+
 
 
     /*
@@ -54,6 +56,8 @@ public class DataStorage {
      */
     ArrayList<Integer> satelliteXCoordinateSection;
     ArrayList<Integer> satelliteYCoordinateSection;
+
+    int timeInterval, speedControl;
 
 
     public DataStorage() {
@@ -90,16 +94,9 @@ public class DataStorage {
          */
          starNames = new ArrayList<>(Arrays.asList("Sun", "Betelgeuse"));
          starDiameters = new ArrayList<>(Arrays.asList(1.391E9, 1.234E12));
-         starDistancefromCentralBody = new ArrayList<>(Arrays.asList(0.00, 0.00));
          starMass = new ArrayList<>(Arrays.asList(1.989E30, 2.188E31));
          starColors = new ArrayList<>(Arrays.asList(Color.yellow, Color.red));
          starPointSizes = new ArrayList<>(Arrays.asList(15, 20));
-
-        /*
-         * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
-         */
-         starXCoordinateSection = new ArrayList<>(Arrays.asList(0, 0));
-         starYCoordinateSection = new ArrayList<>(Arrays.asList(0, 0));
 
 
 
@@ -122,6 +119,8 @@ public class DataStorage {
         satelliteXCoordinateSection = new ArrayList<>(Arrays.asList(0, 1));
         satelliteYCoordinateSection = new ArrayList<>(Arrays.asList(1, 0));
 
+        timeInterval = 1000000;
+        speedControl = 1;
 
     }
     

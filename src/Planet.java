@@ -23,7 +23,7 @@ public class Planet extends SolarSystemBody {
     private double divisor;
 
     public Planet(String name, double diameter, double distanceFromStar, double mass, Star star,
-                  SolarSystemPlot plot, Color color, double initX, double initY) {
+                  SolarSystemPlot plot, Color color, double initX, double initY, DataStorage ds) {
         super(name, diameter, distanceFromStar, mass, initX, initY);
         setType("Planet");
         this.star = star;
@@ -32,7 +32,7 @@ public class Planet extends SolarSystemBody {
         this.color = color;
         toPause = false;
 
-        ds = new DataStorage();
+        this.ds = ds;
 
         setPointSize();
         setDivisor(distanceFromStar);
@@ -63,6 +63,7 @@ public class Planet extends SolarSystemBody {
     public void setPointSize() {
 
         int i = ds.planetNames.indexOf(retName());
+        int s = ds.planetNames.size();
         pointSize = ds.planetPointSizes.get(i);
 
     }
@@ -158,11 +159,13 @@ public class Planet extends SolarSystemBody {
         double v_y = velocity * Math.cos(theta);
         double v_x = -velocity * Math.sin(theta);
 
+        int count = 0;
+
         while (!isToPause()) {
 
 
-            setX(getX() + v_x * (dt / 100));
-            setY(getY() + v_y * (dt / 100));
+            setX(getX() + v_x * (dt / ds.speedControl));
+            setY(getY() + v_y * (dt / ds.speedControl));
 
             theta = Math.atan(getY() / getX());
 
@@ -176,7 +179,7 @@ public class Planet extends SolarSystemBody {
             time += dt;
 
             //This solves the blinking plot problem by only plotting fewer times
-            if (time % (SolarSystemInterface.dt * 1000000) == 0) {
+            if (time % (SolarSystemInterface.dt * ds.timeInterval) == 0) {
 
                 plot.addPoint(Color.black, pointSize, prevX / AU / divisor, prevY / AU / divisor);
                 plot.addPoint(this.color, pointSize, getX() / AU / divisor, getY() / AU / divisor);

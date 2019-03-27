@@ -10,13 +10,17 @@ public class Satellite extends SolarSystemBody {
     private int pointSize;
     private double divisor;
 
+    double relativeX, relativeY;
+
     public Satellite(String name, double diameter, double distanceFromBody, double mass,
-                     SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY) {
+                     SolarSystemBody body, SolarSystemPlot plot, Color color, double initX, double initY, DataStorage ds) {
         super(name, diameter, distanceFromBody, mass, initX, initY);
         this.body = body;
         this.plot = plot;
         this.color = color;
-        ds = new DataStorage();
+        this.ds = ds;
+        relativeX = getX() - body.getX();
+        relativeY = getY() - body.getY();
         setType();
         setPointSize();
         setDivisor();
@@ -100,8 +104,8 @@ public class Satellite extends SolarSystemBody {
         double distance = radiusDistance;
         double centralBodyMass = body.getMass();
 
-        double relativeX = getX() - body.getX();
-        double relativeY = getY() - body.getY();
+        relativeX = getX() - body.getX();
+        relativeY = getY() - body.getY();
 
         double prevX = relativeX;
         double prevY = relativeY;
@@ -121,13 +125,11 @@ public class Satellite extends SolarSystemBody {
         double v_y = velocity * Math.cos(theta);
         double v_x = -velocity * Math.sin(theta);
 
-        int count = 0;
-
         //mv^2/r = GmM/r^2
         while (!toPause()) {
 
-            relativeX += v_x * (dt);
-            relativeY += v_y * (dt);
+            relativeX += v_x * (dt / ds.speedControl);
+            relativeY += v_y * (dt / ds.speedControl);
 
             theta = Math.atan(relativeY / relativeX);
 
@@ -143,7 +145,7 @@ public class Satellite extends SolarSystemBody {
             /*
              * This solves the blinking plot problem by only plotting fewer times
              */
-            if (time % (dt * 1000000) == 0) {
+            if (time % (dt * ds.timeInterval) == 0) {
 
                 plot.addPoint(Color.black, getPointSize(),
                         prevX / AU / divisor + prevBodyX / body.getDivisor() / AU, prevY / AU / divisor + prevBodyY / body.getDivisor() / AU);
@@ -151,8 +153,8 @@ public class Satellite extends SolarSystemBody {
                 plot.addPoint(this.color, getPointSize(),
                         relativeX / AU / divisor + body.getX() / body.getDivisor() / AU, relativeY / AU / divisor + body.getY() / body.getDivisor() / AU);
 
-                double wfj = relativeX / AU / divisor + body.getX() / AU;
-                double eryfhbdj = relativeY / AU / divisor + body.getY() / AU;
+                setX(relativeX);
+                setY(relativeY);
                 prevX = relativeX;
                 prevY = relativeY;
                 prevBodyX = body.getX();
