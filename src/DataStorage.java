@@ -57,7 +57,7 @@ public class DataStorage {
     ArrayList<Integer> satelliteXCoordinateSection;
     ArrayList<Integer> satelliteYCoordinateSection;
 
-    int timeInterval, speedControl;
+    int timeInterval, speedControl, bodyLimit;
 
 
     public DataStorage() {
@@ -108,10 +108,10 @@ public class DataStorage {
         satelliteDiameters = new ArrayList<>(Arrays.asList(108.5, 3.4742E6));
         satelliteDistancefromCentralBody = new ArrayList<>(Arrays.asList(408E3, 384.4E6));
         satelliteMass = new ArrayList<>(Arrays.asList(420E3, 7.34767309E22));
-        satelliteColors = new ArrayList<>(Arrays.asList(Color.blue, Color.gray));
+        satelliteColors = new ArrayList<>(Arrays.asList(Color.white, Color.gray));
         satelliteCentralBody = new ArrayList<>();
         satelliteCentralBodyNames = new ArrayList<>(Arrays.asList("Earth", "Earth"));
-        satellitePointSizes = new ArrayList<>(Arrays.asList(2,3));
+        satellitePointSizes = new ArrayList<>(Arrays.asList(3,4));
 
         /*
          * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
@@ -120,7 +120,10 @@ public class DataStorage {
         satelliteYCoordinateSection = new ArrayList<>(Arrays.asList(1, 0));
 
         timeInterval = 1000000;
-        speedControl = 1;
+        speedControl = 100;
+
+        int cores = Runtime.getRuntime().availableProcessors();
+        bodyLimit = cores + 2;
 
     }
     

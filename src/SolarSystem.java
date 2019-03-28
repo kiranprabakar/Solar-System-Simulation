@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,12 +45,16 @@ public class SolarSystem implements SolarSystemInterface {
         startSimulation = false;
     }
 
-    public Planet newPlanet(String name) {
+    public DataStorage getDs() {
+        return ds;
+    }
+
+    public Planet newPlanet(String name) throws SolarSystemException {
 
         int index = ds.planetNames.indexOf(name);
 
         if (index < 0) {
-            //Add code to add new planet here (also will need to update database here)
+            throw new SolarSystemException("Planet does not exist!");
         }
 
         Planet planet = new Planet(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),
@@ -58,17 +63,18 @@ public class SolarSystem implements SolarSystemInterface {
                 ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU, ds);
 
         ds.satelliteCentralBody.add(planet);
+        ds.satelliteCentralBodyNames.add(planet.retName());
 
         return planet;
 
     }
 
-    public Star newStar(String name) {
+    public Star newStar(String name) throws SolarSystemException {
 
         int index = ds.starNames.indexOf(name);
 
         if (index < 0) {
-            //Add code to add new star here (also will need to update database here)
+            throw new SolarSystemException("Star does not exist!");
         }
 
         return new Star(name, ds.starDiameters.get(index), ds.starMass.get(index), plot, ds.starColors.get(index), ds);
@@ -80,38 +86,26 @@ public class SolarSystem implements SolarSystemInterface {
         int index = ds.satelliteNames.indexOf(name);
 
         if (index < 0) {
-            //Add code to add new star here (also will need to update database here)
-        }
-
-        double distance;
-
-        if ((distance = ds.satelliteDistancefromCentralBody.get(index)) < (0.05 * AU)) {
-            //Gotta make plot point bigger
+            throw new SolarSystemException("Satellite does not exist!");
         }
 
         if (ds.satelliteCentralBody.size() == 0) {
             return null;
         }
 
-        boolean found = false;
         Planet planet = null;
 
         for (int i = 0; i < ds.satelliteCentralBody.size(); i++) {
             if (ds.satelliteCentralBody.get(i).retName().equals(ds.satelliteCentralBodyNames.get(index))) {
-                found = true;
                 planet = ds.satelliteCentralBody.get(i);
                 break;
             }
         }
 
-        if (!found) {
-            throw new SolarSystemException();
-        }
-
         return new Satellite(name, ds.satelliteDiameters.get(index), ds.satelliteDistancefromCentralBody.get(index),
                 ds.satelliteMass.get(index), planet, plot, ds.satelliteColors.get(index),
-                ds.satelliteXCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU,
-                ds.satelliteYCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU, ds);
+                ds.satelliteXCoordinateSection.get(index) * (ds.satelliteDistancefromCentralBody.get(index)) / AU + planet.getX() / AU,
+                ds.satelliteYCoordinateSection.get(index) * (ds.satelliteDistancefromCentralBody.get(index)) / AU + planet.getY() / AU, ds);
 
 
     }
@@ -225,7 +219,7 @@ public class SolarSystem implements SolarSystemInterface {
 
         SolarThreadFactory threads = new SolarThreadFactory();
 
-        executorService = Executors.newFixedThreadPool(bodyLimit, threads);
+        executorService = Executors.newFixedThreadPool(ds.bodyLimit, threads);
 
         try {
             executorService.execute(threads.newThread(getStar()));
@@ -266,8 +260,9 @@ public class SolarSystem implements SolarSystemInterface {
             if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
                 executorService.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
-                if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
+                if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
                     System.err.println("Pool did not terminate");
+                }
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
@@ -286,6 +281,7 @@ public class SolarSystem implements SolarSystemInterface {
         satellites = new HashMap<>();
 
         ds.satelliteCentralBody = new ArrayList<>();
+        ds.speedControl = 100;
 
     }
 
@@ -305,6 +301,7 @@ public class SolarSystem implements SolarSystemInterface {
         String[] attributes = characteristics.split(",");
 
         if (attributes.length != 5) {
+            alert("Wrong number of characterisitcs entered!");
             throw new SolarSystemException("Wrong number of characterisitcs entered!");
         }
 
@@ -313,6 +310,7 @@ public class SolarSystem implements SolarSystemInterface {
         }
 
         if (ds.planetNames.indexOf(attributes[4]) < 0) {
+            alert("Default planet does not exist!");
             throw new SolarSystemException("Default planet does not exist!");
         }
 
@@ -326,6 +324,7 @@ public class SolarSystem implements SolarSystemInterface {
 
             mass = Double.parseDouble(attributes[3]);
         } catch (Exception e) {
+            alert("The diameter, distance, and mass fields must all be doubles!");
             throw new SolarSystemException("The diameter, distance, and mass fields must all be doubles!");
         }
 
@@ -347,6 +346,7 @@ public class SolarSystem implements SolarSystemInterface {
                 ds.planetYCoordinateSection.get(index) * ds.planetDistancefromCentralBody.get(index) / AU, ds);
 
         ds.satelliteCentralBody.add(planet);
+        ds.satelliteCentralBodyNames.add(planet.retName());
 
         return planet;
 
@@ -361,6 +361,7 @@ public class SolarSystem implements SolarSystemInterface {
         String[] attributes = characteristics.split(",");
 
         if (attributes.length != 4) {
+            alert("Wrong number of characteristics entered!");
             throw new SolarSystemException("Wrong number of characterisitcs entered!");
         }
 
@@ -375,6 +376,7 @@ public class SolarSystem implements SolarSystemInterface {
             diameter = Double.parseDouble(attributes[1]);
             mass = Double.parseDouble(attributes[2]);
         } catch (Exception e) {
+            alert("The diameter and mass fields must both be doubles!");
             throw new SolarSystemException("The diameter and mass fields must both be doubles!");
         }
 
@@ -388,6 +390,7 @@ public class SolarSystem implements SolarSystemInterface {
         }
 
         if (color == null) {
+            alert("Star type is invalid!");
             throw new SolarSystemException("Star type is invalid!");
         }
 
@@ -408,6 +411,7 @@ public class SolarSystem implements SolarSystemInterface {
                 ds.starPointSizes.add(10);
                 break;
             default:
+                alert("Invalid type!");
                 throw new SolarSystemException("Invalid type!");
 
         }
@@ -424,7 +428,8 @@ public class SolarSystem implements SolarSystemInterface {
 
         String[] attributes = characteristics.split(",");
 
-        if (attributes.length != 6) {
+        if (attributes.length != 7) {
+            alert("Wrong number of characterisitcs entered!");
             throw new SolarSystemException("Wrong number of characterisitcs entered!");
         }
 
@@ -433,19 +438,24 @@ public class SolarSystem implements SolarSystemInterface {
         }
 
         if (ds.planetNames.indexOf(attributes[4]) < 0) {
+            alert("Planet does not exist!");
             throw new SolarSystemException("Planet does not exist!");
         }
 
         String name = attributes[0];
+
         double diameter, dist, mass;
 
         try {
+
             diameter = Double.parseDouble(attributes[1]);
 
             dist = Double.parseDouble(attributes[2]);
 
             mass = Double.parseDouble(attributes[3]);
+
         } catch (Exception e) {
+            alert("The diameter, distance, and mass fields must all be doubles!");
             throw new SolarSystemException("The diameter, distance, and mass fields must all be doubles!");
         }
 
@@ -460,11 +470,36 @@ public class SolarSystem implements SolarSystemInterface {
                 color = Color.white;
                 break;
             default:
+                alert("Invalid class");
                 throw new SolarSystemException("Invalid Color!");
 
         }
 
+        String type = attributes[6];
+
+        int index = ds.planetNames.indexOf(attributes[4]);
+
+        if (index < 0) {
+            alert("Planet does not exist");
+            throw new SolarSystemException("Planet does not exist!");
+        }
+
+        if (index >= ds.satelliteCentralBodyNames.size()) {
+            alert("Planet has not been added yet!");
+            throw new SolarSystemException("Planet has not been added yet!");
+        }
+
+        Planet planet = null;
+
+        for (int i = 0; i < ds.satelliteCentralBody.size(); i++) {
+            if (ds.satelliteCentralBody.get(i).retName().equals(ds.satelliteCentralBodyNames.get(index))) {
+                planet = ds.satelliteCentralBody.get(i);
+                break;
+            }
+        }
+
         ds.satelliteNames.add(name);
+        ds.satelliteType.add(type);
         ds.satelliteDiameters.add(diameter);
         ds.satelliteDistancefromCentralBody.add(dist);
         ds.satelliteMass.add(mass);
@@ -473,28 +508,29 @@ public class SolarSystem implements SolarSystemInterface {
         ds.satelliteYCoordinateSection.add(1);
         ds.satellitePointSizes.add(3);
 
-        int index = ds.planetNames.indexOf(name);
-
-        boolean found = false;
-        Planet planet = null;
-
-        for (int i = 0; i < ds.satelliteCentralBody.size(); i++) {
-            if (ds.satelliteCentralBody.get(i).retName().equals(ds.satelliteCentralBodyNames.get(index))) {
-                found = true;
-                planet = ds.satelliteCentralBody.get(i);
-                break;
-            }
-        }
-
-        if (!found) {
-            throw new SolarSystemException("Central planet not found!");
-        }
-
         Satellite satellite = new Satellite(name, diameter, dist, mass, planet, plot, color,
                 ds.satelliteXCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU,
                 ds.satelliteYCoordinateSection.get(index) * ds.satelliteDistancefromCentralBody.get(index) / AU, ds);
 
         return satellite;
+
+    }
+
+    public void slowSimulation() {
+
+        ds.speedControl *= 2;
+
+    }
+
+    public void speedUpSimulation() {
+
+        ds.speedControl /= 2;
+
+    }
+
+    public void alert(String s) {
+
+        JOptionPane.showMessageDialog(null, s);
 
     }
 
@@ -509,8 +545,6 @@ public class SolarSystem implements SolarSystemInterface {
 
         SolarSystem solarSystem = new SolarSystem();
 
-        SolarSystemGUI gui = new SolarSystemGUI(solarSystem);
-
         //Title, xMin, xMax, yMin, yMax
         SolarSystemPlot plot = new SolarSystemPlot("Orbit of Planets", -coordinateMax, coordinateMax,
                 -coordinateMax, coordinateMax);
@@ -523,6 +557,8 @@ public class SolarSystem implements SolarSystemInterface {
         } catch (SolarSystemException ss) {
             ss.printStackTrace();
         }
+
+        SolarSystemGUI gui = new SolarSystemGUI(solarSystem);
 
     }
 
