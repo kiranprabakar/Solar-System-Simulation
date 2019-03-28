@@ -159,8 +159,6 @@ public class Planet extends SolarSystemBody {
         double v_y = velocity * Math.cos(theta);
         double v_x = -velocity * Math.sin(theta);
 
-        int count = 0;
-
         while (!isToPause()) {
 
 
@@ -221,8 +219,7 @@ public class Planet extends SolarSystemBody {
                 time += SolarSystemInterface.dt;
             }*/
         }
-
-        Thread.currentThread().interrupt();
+        //Thread.currentThread().interrupt();
 
     }
 

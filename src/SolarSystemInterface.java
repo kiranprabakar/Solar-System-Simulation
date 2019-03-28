@@ -16,19 +16,22 @@ public interface SolarSystemInterface {
 
     double  dt = 1;
 
-    int bodyLimit = 6;
+    //int bodyLimit = 6;
 
     double innerPlanetDivisor = 0.5;
     double outerPlanetDivisor = 1;
     double nepUrDivisor = 1;
 
-    double satelliteDivisor = 0.05;
-    double moonDivisor = 2;
+    double satelliteDivisor = 0.00001;
+    double moonDivisor = 0.01;
 
     int plotWidth = 1000;
     int plotHeight = 1000;
 
     int coordinateMax = 35;
+
+    int minSpeedControl = 1;
+    int maxSpeedControl = 400;
 
     String[] starTypes = {"Main Sequence", "Red giant", "White dwarf"};
     Color[] starColors = {Color.yellow, Color.red, Color.white};
@@ -42,7 +45,7 @@ public interface SolarSystemInterface {
             "Note: Please do not enter random characters or new lines. Close window when done.\n";
 
     String customSatelliteIntro = "To add a satellite, type each characteristic using this format:\n" +
-            "(Name), (Diameter[meters]), (Distance From Planet[meters]), (Mass[kilograms]), (Name of Central Planet), (Color [White or Gray])\n" + "\n" +
+            "(Name), (Diameter[meters]), (Distance From Planet[meters]), (Mass[kilograms]), (Name of Central Planet), (Color [White or Gray]), (Type [Moon or Satellite]\n" + "\n" +
             "Note: Please do not enter random characters or new lines. Close window when done.\n";
 
 }

@@ -9,7 +9,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
     private Panel controlPanel;
     private Frame controlFrame;
 
-    private Button addPlanet, addStar, addSatelliteMoon, addSatellite, addMoon;
+    private Button addPlanet, addStar, addSatelliteMoon, slowDown, speedUp;
 
     private Frame addPlanetsFrame;
     private Panel addPlanetsPanel;
@@ -20,20 +20,13 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
     private Frame addSatelliteMoonFrame;
     private Panel addSatelliteMoonPanel;
 
-    private Frame addSatelliteFrame;
-    private Panel addSatellitePanel;
-
-    private Frame addMoonFrame;
-    private Panel addMoonPanel;
-
     private Frame addCustomFrame;
     private JTextArea addCustomText;
 
     private Button start, stop;
     private Button addMercury, addVenus, addEarth, addMars, addJupiter, addSaturn, addUranus, addNeptune, addCustomPlanet;
-    private Button addSun, addCustomStar;
-    private Button addISS, addCustomSatellite;
-    private Button addMoonOfEarth, addCustomMoon;
+    private Button addSun, addBetelgeuse, addCustomStar;
+    private Button addISS, addMoonOfEarth, addCustomSatellite;
 
     private int bodyCount;
     private boolean started, starAdded;
@@ -43,6 +36,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
     public SolarSystemGUI(SolarSystem solarSystem) {
 
         this.solarSystem = solarSystem;
+
+        final int bodyLimit = solarSystem.getDs().bodyLimit;
 
         bodyCount = 0;
 
@@ -100,7 +95,202 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
         this.controlPanel.add(stop);
 
-        addPlanet = new Button("Add Planet");		// create a button to clear the plot
+        speedUp = new Button("Speed Up");
+        speedUp.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (started) {
+                    if (solarSystem.getDs().speedControl > minSpeedControl) {
+                        solarSystem.speedUpSimulation();
+                    } else {
+                        alert("Cannot speed up anymore!");
+                    }
+                } else {
+                    alert("Simulation is not running!");
+                }
+            }
+        });
+
+        this.controlPanel.add(speedUp);
+
+        slowDown = new Button("Slow Down");
+        slowDown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (started) {
+                    if (solarSystem.getDs().speedControl < maxSpeedControl) {
+                        solarSystem.slowSimulation();
+                    } else {
+                        alert("Cannot slow down anymore!");
+                    }
+                } else {
+                    alert("Simulation is not running!");
+                }
+            }
+        });
+
+        this.controlPanel.add(slowDown);
+
+        addStar = new Button("Add Star");		// create a button to clear the plot
+        addStar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (!starAdded) {
+                    addStarFrame = new Frame("Choose which star to add!");
+                    addStarFrame.setSize(100, 100);
+
+                    addStarPanel = new Panel();
+
+                    addStarFrame.add(addStarPanel, BorderLayout.CENTER);
+
+                    addSun = new Button("Sun");
+                    addCustomStar = new Button("Custom");
+                    addBetelgeuse = new Button("Betelgeuse");
+
+                    addStarPanel.add(addSun);
+                    addStarPanel.add(addBetelgeuse);
+                    addStarPanel.add(addCustomStar);
+
+                    addSun.addActionListener((new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                if (!starAdded) {
+                                    Star star = solarSystem.newStar("Sun");
+                                    if (!started) {
+                                        solarSystem.addStar(star);
+                                        solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(), star.getX(), star.getY());
+                                        solarSystem.getPlot().repaint();
+                                        ++bodyCount;
+                                    } else {
+                                        solarSystem.addStar(star);
+                                        solarSystem.getExecutorService().execute(star);
+                                        ++bodyCount;
+                                    }
+                                    starAdded = true;
+                                } else {
+                                    alert("A star already exists!");
+                                }
+                            } catch (SolarSystemException ss) {
+                                alert("Sorry, this star already exists");
+                            }
+
+                        }
+                    }));
+
+                    addBetelgeuse.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                if (!starAdded) {
+                                    Star star = solarSystem.newStar("Betelgeuse");
+                                    if (!started) {
+                                        solarSystem.addStar(star);
+                                        solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(), star.getX(), star.getY());
+                                        solarSystem.getPlot().repaint();
+                                        ++bodyCount;
+                                    } else {
+                                        solarSystem.addStar(star);
+                                        solarSystem.getExecutorService().execute(star);
+                                        ++bodyCount;
+                                    }
+                                    starAdded = true;
+                                } else {
+                                    alert("A star already exists!");
+                                }
+                            } catch (SolarSystemException ss) {
+                                //alert("Sorry, this star already exists");
+                            }
+                        }
+                    });
+
+                    addCustomStar.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (!starAdded) {
+                                addCustomFrame = new Frame("Custom Star");
+                                addCustomText = new JTextArea(customStarIntro, 8, 75);
+                                addCustomFrame.add(addCustomText);
+                                addCustomFrame.pack();
+                                addCustomFrame.setVisible(true);
+
+
+                                addCustomFrame.addWindowListener(new WindowAdapter() {
+                                    @Override
+                                    public void windowClosing(WindowEvent e) {
+
+                                        text = addCustomText.getText();
+                                        String characteristics = text.substring(text.lastIndexOf("\n") + 1);
+
+                                        try {
+                                            if (!started) {
+                                                if (bodyCount < bodyLimit) {
+                                                    Star star = solarSystem.createCustomStar(characteristics);
+                                                    try {
+                                                        solarSystem.addStar(star);
+                                                        solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(),
+                                                                0, 0);
+                                                        solarSystem.getPlot().repaint();
+                                                        starAdded = true;
+                                                        ++bodyCount;
+                                                    } catch (SolarSystemException ss) {
+                                                        ss.printStackTrace();
+                                                    }
+
+                                                } else {
+                                                    alert("Sorry, no more bodies can be added!");
+                                                }
+                                            } else {
+                                                if (bodyCount < bodyLimit) {
+                                                    try {
+                                                        Star star = solarSystem.createCustomStar(characteristics);
+                                                        solarSystem.addStar(star);
+                                                        solarSystem.getExecutorService().execute(star);
+                                                        starAdded = true;
+                                                        ++bodyCount;
+                                                    } catch (SolarSystemException ss) {
+                                                        ss.printStackTrace();
+                                                    }
+                                                } else {
+                                                    alert("Sorry, no more bodies can be added!");
+                                                }
+                                            }
+                                        } catch (SolarSystemException ss) {
+                                            ss.printStackTrace();
+                                            //alert("Sorry, this star already exists");
+                                        }
+
+                                        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                                        addCustomFrame.setVisible(false);
+                                        addCustomFrame.dispose();
+                                    }
+                                });
+                            } else {
+                                alert("Star already exists!");
+                            }
+                        }
+                    });
+
+                    addStarFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
+                        public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
+                            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                            addStarFrame.setVisible(false);
+                            addStarFrame.dispose();
+                        }
+                    });
+
+                    addStarFrame.pack();
+
+                    addStarFrame.setResizable(true);
+                    addStarFrame.setVisible(true);
+                } else {
+                    alert("Star already exists!");
+                }
+            }
+        });
+
+        this.controlPanel.add(addStar);
+
+        addPlanet = new Button("Add Planet");
         addPlanet.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (starAdded) {
@@ -454,51 +644,67 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
         });// tell it what to do when the button is clicked
         this.controlPanel.add(addPlanet);
 
-        addStar = new Button("Add Star");		// create a button to clear the plot
-        addStar.addActionListener(new ActionListener() {
+        addSatelliteMoon = new Button("Add Satellite or Moon");
+        addSatelliteMoon.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (!starAdded) {
-                    addStarFrame = new Frame("Choose which star to add!");
-                    addStarFrame.setSize(100, 100);
+                if (starAdded) {
+                    addSatelliteMoonFrame = new Frame("Choose which type to add!");
+                    addSatelliteMoonFrame.setSize(100, 100);
 
-                    addStarPanel = new Panel();
+                    addSatelliteMoonPanel = new Panel();
 
-                    addStarFrame.add(addStarPanel, BorderLayout.CENTER);
+                    addSatelliteMoonFrame.add(addSatelliteMoonPanel, BorderLayout.CENTER);
 
-                    addSun = new Button("Sun");
-                    addCustomStar = new Button("Custom");
+                    addISS = new Button("ISS");
+                    addCustomSatellite = new Button("Custom");
 
-                    addStarPanel.add(addSun);
-                    addStarPanel.add(addCustomStar);
-
-                    addSun.addActionListener((new ActionListener() {
+                    addISS.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             try {
-                                Star star = solarSystem.newStar("Sun");
                                 if (!started) {
-                                    solarSystem.addStar(star);
-                                    solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(), star.getX(), star.getY());
-                                    solarSystem.getPlot().repaint();
-                                    ++bodyCount;
+                                    if (bodyCount < bodyLimit) {
+                                        try {
+                                            Satellite satellite = solarSystem.newSatellite("ISS");
+                                            solarSystem.addSatellite(satellite);
+                                            solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
+                                                    satellite.relativeX / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
+                                                    satellite.relativeY / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
+                                            solarSystem.getPlot().repaint();
+                                            ++bodyCount;
+                                        } catch (Exception s) {
+                                            s.printStackTrace();
+                                            alert("Planet has not been added yet!");
+                                        }
+                                    } else {
+                                        alert("Sorry, no more bodies can be added!");
+                                    }
                                 } else {
-                                    solarSystem.addStar(star);
-                                    solarSystem.getExecutorService().execute(star);
-                                    ++bodyCount;
+                                    if (bodyCount < bodyLimit) {
+                                        try {
+                                            Satellite satellite = solarSystem.newSatellite("ISS");
+                                            solarSystem.addSatellite(satellite);
+                                            solarSystem.getExecutorService().execute(satellite);
+                                            ++bodyCount;
+                                        } catch (Exception s) {
+                                            s.printStackTrace();
+                                            alert("Planet has not been added yet!");
+                                        }
+                                    } else {
+                                        alert("Cannot add any more bodies!");
+                                    }
                                 }
-                                starAdded = true;
-                            } catch (SolarSystemException ss) {
-                                alert("Sorry, this star already exists");
+                            } catch (Exception ss) {
+                                alert("Sorry, this satellite already exists");
                             }
-
                         }
-                    }));
+                    });
 
-                    addCustomStar.addActionListener(new ActionListener() {
+                    addCustomSatellite.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             addCustomFrame = new Frame("Custom Star");
-                            addCustomText = new JTextArea(customStarIntro, 8, 75);
+                            addCustomText = new JTextArea(customSatelliteIntro, 8, 75);
                             addCustomFrame.add(addCustomText);
                             addCustomFrame.pack();
                             addCustomFrame.setVisible(true);
@@ -514,13 +720,13 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                     try {
                                         if (!started) {
                                             if (bodyCount < bodyLimit) {
-                                                Star star = solarSystem.createCustomStar(characteristics);
                                                 try {
-                                                    solarSystem.addStar(star);
-                                                    solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(),
-                                                            0,0);
+                                                    Satellite satellite = solarSystem.createCustomSatellite(characteristics);
+                                                    solarSystem.addSatellite(satellite);
+                                                    solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
+                                                            satellite.relativeX / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
+                                                            satellite.relativeY / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
                                                     solarSystem.getPlot().repaint();
-                                                    starAdded = true;
                                                     ++bodyCount;
                                                 } catch (SolarSystemException ss) {
                                                     ss.printStackTrace();
@@ -531,10 +737,9 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                         } else {
                                             if (bodyCount < bodyLimit) {
                                                 try {
-                                                    Star star = solarSystem.createCustomStar(characteristics);
-                                                    solarSystem.addStar(star);
-                                                    solarSystem.getExecutorService().execute(star);
-                                                    starAdded = true;
+                                                    Satellite satellite = solarSystem.createCustomSatellite(characteristics);
+                                                    solarSystem.addSatellite(satellite);
+                                                    solarSystem.getExecutorService().execute(satellite);
                                                     ++bodyCount;
                                                 } catch (SolarSystemException ss) {
                                                     ss.printStackTrace();
@@ -543,8 +748,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                                 alert("Sorry, no more bodies can be added!");
                                             }
                                         }
-                                    } catch (SolarSystemException ss) {
-                                        alert("Sorry, this star already exists");
+                                    } catch (Exception ss) {
+                                        //ss.printStackTrace();
                                     }
 
                                     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -555,242 +760,52 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                         }
                     });
 
-                    addStarFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
-                        public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
-                            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                            addStarFrame.setVisible(false);
-                            addStarFrame.dispose();
+                    addMoonOfEarth = new Button("Earth's Moon");
+
+                    addSatelliteMoonPanel.add(addISS);
+                    addSatelliteMoonPanel.add(addMoonOfEarth);
+                    addSatelliteMoonPanel.add(addCustomSatellite);
+
+                    addMoonOfEarth.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                if (!started) {
+                                    if (bodyCount < bodyLimit) {
+                                        try {
+                                            Satellite satellite = solarSystem.newSatellite("Moon");
+                                            solarSystem.addSatellite(satellite);
+                                            solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
+                                                    satellite.relativeX / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
+                                                    satellite.relativeY / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
+                                            solarSystem.getPlot().repaint();
+                                            ++bodyCount;
+                                        } catch (Exception s) {
+                                            s.printStackTrace();
+                                            alert("Planet has not been added yet!");
+                                        }
+                                    } else {
+                                        alert("Sorry, no more bodies can be added!");
+                                    }
+                                } else {
+                                    if (bodyCount < bodyLimit) {
+                                        try {
+                                            Satellite satellite = solarSystem.newSatellite("Moon");
+                                            solarSystem.addSatellite(satellite);
+                                            solarSystem.getExecutorService().execute(satellite);
+                                            ++bodyCount;
+                                        } catch (Exception s) {
+                                            alert("Planet has not been added yet!");
+                                        }
+                                    } else {
+                                        alert("Sorry, no more bodies can be added!");
+                                    }
+                                }
+                            } catch (Exception ss) {
+                                alert("Sorry, this satellite already exists");
+                            }
                         }
                     });
-
-                    addStarFrame.pack();
-
-                    addStarFrame.setResizable(true);
-                    addStarFrame.setVisible(true);
-                } else {
-                    alert("Star already exists!");
-                }
-            }
-        });
-        this.controlPanel.add(addStar);
-
-        addSatelliteMoon = new Button("Add Satellite or Moon");
-        addSatelliteMoon.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (starAdded) {
-                    addSatelliteMoonFrame = new Frame("Choose which type to add!");
-                    addSatelliteMoonFrame.setSize(100, 100);
-
-                    addSatelliteMoonPanel = new Panel();
-
-                    addSatelliteMoonFrame.add(addSatelliteMoonPanel, BorderLayout.CENTER);
-
-                    addSatellite = new Button("Satellite");
-                    addMoon = new Button("Moon");
-
-                    addSatelliteMoonPanel.add(addSatellite);
-                    addSatelliteMoonPanel.add(addMoon);
-
-                    addSatellite.addActionListener((new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            addSatelliteFrame = new Frame("Choose which satellites to add!");
-                            addSatelliteFrame.setSize(100, 100);
-
-                            addSatellitePanel = new Panel();
-
-                            addSatelliteFrame.add(addSatellitePanel, BorderLayout.CENTER);
-
-                            addISS = new Button("ISS");
-                            addCustomSatellite = new Button("Custom");
-
-                            addISS.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    try {
-                                        if (!started) {
-                                            if (bodyCount < bodyLimit) {
-                                                try {
-                                                    Satellite satellite = solarSystem.newSatellite("ISS");
-                                                    solarSystem.addSatellite(satellite);
-                                                    solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
-                                                            satellite.getX() / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
-                                                            satellite.getY() / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
-                                                    solarSystem.getPlot().repaint();
-                                                    ++bodyCount;
-                                                } catch (Exception s) {
-                                                    s.printStackTrace();
-                                                    alert("Planet has not been added yet!");
-                                                }
-                                            } else {
-                                                alert("Sorry, no more bodies can be added!");
-                                            }
-                                        } else {
-                                            try {
-                                                Satellite satellite = solarSystem.newSatellite("ISS");
-                                                solarSystem.addSatellite(satellite);
-                                                solarSystem.getExecutorService().execute(satellite);
-                                                ++bodyCount;
-                                            } catch (Exception s) {
-                                                System.out.println("...");
-
-                                                alert("Planet has not been added yet!");
-                                            }
-                                        }
-                                    } catch (Exception ss) {
-                                        alert("Sorry, this satellite already exists");
-                                    }
-                                }
-                            });
-
-                            addCustomSatellite.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    addCustomFrame = new Frame("Custom Star");
-                                    addCustomText = new JTextArea(customSatelliteIntro, 8, 75);
-                                    addCustomFrame.add(addCustomText);
-                                    addCustomFrame.pack();
-                                    addCustomFrame.setVisible(true);
-
-
-                                    addCustomFrame.addWindowListener(new WindowAdapter() {
-                                        @Override
-                                        public void windowClosing(WindowEvent e) {
-
-                                            text = addCustomText.getText();
-                                            String characteristics = text.substring(text.lastIndexOf("\n") + 1);
-
-                                            try {
-                                                if (!started) {
-                                                    if (bodyCount < bodyLimit) {
-                                                        try {
-                                                            Satellite satellite = solarSystem.createCustomSatellite(characteristics);
-                                                            solarSystem.addSatellite(satellite);
-                                                            solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
-                                                                    0,0);
-                                                            solarSystem.getPlot().repaint();
-                                                            ++bodyCount;
-                                                        } catch (SolarSystemException ss) {
-                                                            ss.printStackTrace();
-                                                        }
-                                                    } else {
-                                                        alert("Sorry, no more bodies can be added!");
-                                                    }
-                                                } else {
-                                                    if (bodyCount < bodyLimit) {
-                                                        try {
-                                                            Satellite satellite = solarSystem.createCustomSatellite(characteristics);
-                                                            solarSystem.addSatellite(satellite);
-                                                            solarSystem.getExecutorService().execute(satellite);
-                                                            ++bodyCount;
-                                                        } catch (SolarSystemException ss) {
-                                                            ss.printStackTrace();
-                                                        }
-                                                    } else {
-                                                        alert("Sorry, no more bodies can be added!");
-                                                    }
-                                                }
-                                            } catch (Exception ss) {
-                                                ss.printStackTrace();
-                                            }
-
-                                            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                                            addCustomFrame.setVisible(false);
-                                            addCustomFrame.dispose();
-                                        }
-                                    });
-                                }
-                            });
-
-                            addSatellitePanel.add(addISS);
-                            addSatellitePanel.add(addCustomSatellite);
-
-                            addSatelliteFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
-                                public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
-                                    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                                    addSatelliteFrame.setVisible(false);
-                                    addSatelliteFrame.dispose();
-                                }
-                            });
-
-                            addSatelliteFrame.pack();
-
-                            addSatelliteFrame.setResizable(true);
-                            addSatelliteFrame.setVisible(true);
-                        }
-                    }));
-                    addSatelliteMoonPanel.add(addSatellite);
-
-                    addMoon.addActionListener((new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-
-                            addMoonFrame = new Frame("Choose which moons to add!");
-                            addMoonFrame.setSize(100, 100);
-
-                            addMoonPanel = new Panel();
-
-                            addMoonFrame.add(addMoonPanel, BorderLayout.CENTER);
-
-                            addMoonOfEarth = new Button("Earth's Moon");
-                            addCustomMoon = new Button("Custom");
-
-                            addMoonPanel.add(addMoonOfEarth);
-                            addMoonPanel.add(addCustomMoon);
-
-                            addMoonOfEarth.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    try {
-                                        if (!started) {
-                                            if (bodyCount < bodyLimit) {
-                                                try {
-                                                    Satellite satellite = solarSystem.newSatellite("Moon");
-                                                    solarSystem.addSatellite(satellite);
-                                                    solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),
-                                                            satellite.relativeX / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
-                                                            satellite.relativeY / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
-                                                    solarSystem.getPlot().repaint();
-                                                    ++bodyCount;
-                                                } catch (Exception s) {
-                                                    s.printStackTrace();
-                                                    alert("Planet has not been added yet!");
-                                                }
-                                            } else {
-                                                alert("Sorry, no more bodies can be added!");
-                                            }
-                                        } else {
-                                            try {
-                                                Satellite satellite = solarSystem.newSatellite("Moon");
-                                                solarSystem.addSatellite(satellite);
-                                                solarSystem.getExecutorService().execute(satellite);
-                                                ++bodyCount;
-                                            } catch (Exception s) {
-                                                alert("Planet has not been added yet!");
-                                            }
-                                        }
-                                    } catch (Exception ss) {
-                                        alert("Sorry, this satellite already exists");
-                                    }
-                                }
-                            });
-
-                            addMoonFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
-                                public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
-                                    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                                    addMoonFrame.setVisible(false);
-                                    addMoonFrame.dispose();
-                                }
-                            });
-
-                            addMoonFrame.pack();
-
-                            addMoonFrame.setResizable(true);
-                            addMoonFrame.setVisible(true);
-
-                        }
-
-                    }));
 
                     addSatelliteMoonFrame.addWindowListener(new WindowAdapter() {    // remove this if you don't want the program
                         public void windowClosing(WindowEvent e) {        // to quit when close-box is clicked
@@ -800,8 +815,6 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                         }
                     });
 
-                    addSatelliteMoonPanel.add(addMoon);
-
                     addSatelliteMoonFrame.pack();
 
                     addSatelliteMoonFrame.setResizable(true);
@@ -810,7 +823,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                     alert("Star does not exist yet!");
                 }
             }
-        });// tell it what to do when the button is clicked
+        });
 
         this.controlPanel.add(addSatelliteMoon);
 

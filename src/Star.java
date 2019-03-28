@@ -58,13 +58,11 @@ public class Star extends SolarSystemBody {
 
     public void run() {
 
-        plot.addPoint(this.color, pointSize, 0, 0);
-
         while (!toPause()) {
-
+            plot.addPoint(this.color, pointSize, 0, 0);
         }
 
-        Thread.currentThread().interrupt();
+        //Thread.currentThread().interrupt();
 
     }
 }

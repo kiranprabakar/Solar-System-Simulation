@@ -7,7 +7,7 @@ public class Satellite extends SolarSystemBody {
     private Color color;
     private boolean pause;
     private DataStorage ds;
-    private int pointSize;
+    private int pointSize, timeInterval;
     private double divisor;
 
     double relativeX, relativeY;
@@ -19,9 +19,12 @@ public class Satellite extends SolarSystemBody {
         this.plot = plot;
         this.color = color;
         this.ds = ds;
+        System.out.println(getY());
+        System.out.println(body.getY());
         relativeX = getX() - body.getX();
         relativeY = getY() - body.getY();
         setType();
+        setTimeInterval();
         setPointSize();
         setDivisor();
     }
@@ -38,6 +41,19 @@ public class Satellite extends SolarSystemBody {
         int index = ds.satelliteNames.indexOf(retName());
         String string = ds.satelliteType.get(index);
         super.setType(string);
+    }
+
+    public void setTimeInterval() {
+        if (getType().equals("Satellite")) {
+            timeInterval = ds.timeInterval / 10000;
+        } else {
+            timeInterval = ds.timeInterval;
+        }
+    }
+
+    @Override
+    public String getType() {
+        return super.getType();
     }
 
     public double getDivisor() {
@@ -145,7 +161,7 @@ public class Satellite extends SolarSystemBody {
             /*
              * This solves the blinking plot problem by only plotting fewer times
              */
-            if (time % (dt * ds.timeInterval) == 0) {
+            if (time % (dt * timeInterval) == 0) {
 
                 plot.addPoint(Color.black, getPointSize(),
                         prevX / AU / divisor + prevBodyX / body.getDivisor() / AU, prevY / AU / divisor + prevBodyY / body.getDivisor() / AU);
@@ -153,8 +169,8 @@ public class Satellite extends SolarSystemBody {
                 plot.addPoint(this.color, getPointSize(),
                         relativeX / AU / divisor + body.getX() / body.getDivisor() / AU, relativeY / AU / divisor + body.getY() / body.getDivisor() / AU);
 
-                setX(relativeX);
-                setY(relativeY);
+                setX(body.getX() + relativeX);
+                setY(body.getY() + relativeY);
                 prevX = relativeX;
                 prevY = relativeY;
                 prevBodyX = body.getX();
@@ -165,7 +181,7 @@ public class Satellite extends SolarSystemBody {
 
         }
 
-        Thread.currentThread().interrupt();
+        //Thread.currentThread().interrupt();
 
     }
 
