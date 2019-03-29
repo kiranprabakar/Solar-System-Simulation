@@ -33,27 +33,41 @@ public interface SolarSystemInterface {
     int minSpeedControl = 1;                    // will be used for speed control
     int maxSpeedControl = 400;
 
-    ArrayList<String> planetNames = new ArrayList<>(Arrays.asList("Mercury", "Venus", "Earth",      // default planet names
-            "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"));
-
-    ArrayList<String> satelliteCentralBodyNames = new ArrayList<>(Arrays.asList("Earth", "Earth")); // default planets that each satellite can orbit around
-
     String[] starTypes = {"Main sequence", "Red giant", "White dwarf"};                             // allowed types of stars
     Color[] starColors = {Color.yellow, Color.red, Color.white};                                    // color for each type of star
 
     /*
+     * This string gives the user program usage info as soon as the program is launched
+     */
+    String intro = "Welcome to the Solar System Simulation! Please note the following:\n"
+            + "\n" + "To begin, create a star and add bodies as you wish until the limit is reached.\n"
+            + "A set of default bodies is provided if desired but custom bodies can be created as the user wishes.\n"
+            + "To start the simulation, click on \"Start\"\n"
+            + "To stop or clear the simulation, click on \"Stop / Clear\"\n"
+            + "To speed up or slow down the simulation, click on \"Speed up\" or \"Slow down\"\n"
+            + "\n" + "Keep in mind that bodies will not be placed in accurate positions on the display and the body sizes will not be proportional.\n"
+            + "This is to account for the massive distances between bodies and the relative smallness of each body\n"
+            + "\n" + "IMPORTANT NOTE: When creating custom bodies, follow the instructions carefully.\n"
+            + "Failing to do so can cause the whole body to not be created. "
+            + "This includes capitalization of the correct letters, commas in the correct spots, and spaces in the correct spots.\n"
+            + "Additionally, the capacity of the solar system is limited by the processing power of this computer, which is accounted for in the program\n";
+
+    /*
      * The text fields presented when the user selects to add a customized celestial body
      */
-    String customPlanetIntro = "To add a planet, type each characteristic using this format:\n" +
-            "(Name), (Diameter[meters]), (Distance From Star[meters]), (Mass[kilograms]), (Default Planet with a similar composition)\n" + "\n" +
-            "Note: Please do not enter random characters or new lines. Close window when done.\n";
+    String customStarIntro = "To add a star, type each characteristic using this format:\n"
+            + "(Name), (Diameter[meters]), (Mass[kilograms]), (Type of star [Main sequence, Red giant, or White dwarf])\n"
+            + "i.e: Sunny, 2E9, 2E30, White dwarf\n"
+            + "\n" + "Note: Please do not enter random characters or new lines. Close window when done.\n";
 
-    String customStarIntro = "To add a star, type each characteristic using this format:\n" +
-            "(Name), (Diameter[meters]), (Mass[kilograms]), (Type of star [Main sequence, Red giant, or White dwarf])\n" + "\n" +
-            "Note: Please do not enter random characters or new lines. Close window when done.\n";
+    String customPlanetIntro = "To add a planet, type each characteristic using this format:\n"
+            + "(Name), (Diameter[meters]), (Distance From Star[meters]), (Mass[kilograms]), (Default Planet with a similar composition)\n"
+            + "i.e: Ert, 10E6, 200E9, 4.5E24, Earth\n"
+            + "\n" + "Note: Please do not enter random characters or new lines. Close window when done.\n";
 
-    String customSatelliteIntro = "To add a satellite, type each characteristic using this format:\n" +
-            "(Name), (Diameter[meters]), (Distance From Planet[meters]), (Mass[kilograms]), (Name of Central Planet), (Color [White or Gray]), (Type [Moon or Satellite]\n" + "\n" +
-            "Note: Please do not enter random characters or new lines. Close window when done.\n";
+    String customSatelliteIntro = "To add a satellite, type each characteristic using this format:\n"
+            + "(Name), (Diameter[meters]), (Distance From Planet[meters]), (Mass[kilograms]), (Name of Central Planet), (Color [White or Gray]), (Type [Moon or Satellite])\n"
+            + "i.e: Mun, 2000000, 234E6, 4.5E21, Ert, Gray, Moon\n"
+            + "\n" + "Note: Please do not enter random characters or new lines. Close window when done.\n";
 
 }
