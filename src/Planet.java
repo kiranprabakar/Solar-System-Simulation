@@ -1,54 +1,58 @@
-/*
- * Creates a Planet based on parameters
- */
 
 import java.awt.*;
-import java.text.DecimalFormat;
 
+/**
+ * Creates a planet for the solar system
+ */
 public class Planet extends SolarSystemBody {
 
-    private boolean isHabitable;
-    private boolean toPause;
+    private boolean toPause;                                // determines of orbit needs to be paused
 
-    /*
-     * Following variables are for the run() method
+    private Star star;                                      // the star associated with the solar system
+    private SolarSystemPlot plot;                           // the plot associated with the solar system
+
+    private Color color;                                    // the color of each plot point
+    private int pointSize;                                  // the size of each point
+    private DataStorage ds;                                 // the data store associated with the planet
+
+    private double divisor;                                 // makes visibility on the display easier
+
+    /**
+     * @param name - name of the planet
+     * @param diameter - diameter of the planet
+     * @param distanceFromStar - distance from the star
+     * @param mass - mass of the planet
+     * @param star - the solar system's star
+     * @param plot - the plot to display the solar system
+     * @param color - the color associated with the planet
+     * @param initX - the initial x - coordinate (true distance / AU)
+     * @param initY - the initial y - coordinate (true distance / AU)
+     * @param ds - the data store that the planet will access
      */
-    private Star star;
-    private SolarSystemPlot plot;
-
-    private Color color;
-    private int pointSize;
-    private DataStorage ds;
-
-    private double divisor;
-
     public Planet(String name, double diameter, double distanceFromStar, double mass, Star star,
                   SolarSystemPlot plot, Color color, double initX, double initY, DataStorage ds) {
         super(name, diameter, distanceFromStar, mass, initX, initY);
         setType("Planet");
         this.star = star;
-        //this.isHabitable = isHabitable(this.star.getHabitableZoneLowerBound(), this.star.getHabitableZoneUpperBound());
         this.plot = plot;
         this.color = color;
         toPause = false;
 
         this.ds = ds;
 
-        setPointSize();
-        setDivisor(distanceFromStar);
+        setPointSize();                         // sets the planet's point size
+        setDivisor(distanceFromStar);           // sets the planet's divisor
 
     }
 
-    /*public boolean isHabitable(double lowerBound, double upperBound) {
-        return this.getDistanceFromCentralBody() > lowerBound
-                && this.getDistanceFromCentralBody() < upperBound;
-    }*/
-
+    /**
+     * @param distance - distance from the star
+     */
     public void setDivisor(double distance) {
 
-        if (ds.planetDistancefromCentralBody.indexOf(distance) <= 3) {
+        if (ds.planetDistancefromCentralBody.indexOf(distance) <= 3) {              // checks if the orbit radius is smaller than that of Mars
             divisor = innerPlanetDivisor;
-        } else if (ds.planetDistancefromCentralBody.indexOf(distance) <= 5) {
+        } else if (ds.planetDistancefromCentralBody.indexOf(distance) <= 5) {       // checks if the orbit radius is smaller than that of Saturn
             divisor = outerPlanetDivisor;
         } else {
             divisor = nepUrDivisor;
@@ -56,170 +60,142 @@ public class Planet extends SolarSystemBody {
 
     }
 
+    /**
+     * @return - the divisor
+     */
     public double getDivisor() {
         return divisor;
     }
 
+    /**
+     * Sets the point size
+     */
     public void setPointSize() {
 
         int i = ds.planetNames.indexOf(retName());
-        int s = ds.planetNames.size();
         pointSize = ds.planetPointSizes.get(i);
 
     }
 
-    public Star getStar() {
-        return star;
-    }
-
-    public SolarSystemPlot getSolarSystemPlot() {
-        return plot;
-    }
-
+    /**
+     * @return - x - coordinate
+     */
     public synchronized double getX() {
         return super.getX();
     }
 
+    /**
+     * @return - y - coordinate
+     */
     public synchronized double getY() {
         return super.getY();
     }
 
+    /**
+     * @return - the planet's color
+     */
     public synchronized Color getColor() {
         return color;
     }
 
+    /**
+     * @param initX - the new x - coordinate
+     */
     public synchronized void setX(double initX) {
         super.setX(initX);
     }
 
+    /**
+     * @param initY - the new y - coordinate
+     */
     public synchronized void setY(double initY) {
         super.setY(initY);
     }
 
-    public void setStar(Star star) {
-        this.star = star;
-    }
-
-    public void setPlot(SolarSystemPlot plot) {
-        this.plot = plot;
-    }
-
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
+    /**
+     * Determines if the orbit needs to be paused
+     */
     public synchronized void pause() {
         toPause = true;
     }
 
+    /**
+     * @return - checks if the orbit needs to stop
+     */
     public synchronized boolean isToPause() {
         return toPause;
     }
 
+    /**
+     * @return - the display point size
+     */
     public int getPointSize() {
         return pointSize;
     }
 
-    /*
+    /**
      * Orbit calculated using regular euler formula
-     * Possibilities for improvement:
-     *     Range-Kutta (Improved Euler) to solve this
-     *     Midpoint method to solve this (refer to simulation manual)
-     *  Will need to implement an error checker for the sake of full orbits
-     *
-     *  Can use vis viva equation (AAE 251) v^2  = GM(2 / r - 1 / a)
-     *      a = semi-major axis
-     *      r = distance from center of central body to point on orbit (r = sqrt(x^2 + y^2))
-     *
-     *  Might use Verlet Algorithm instead of vis viva
+     * Uses Newton's Law of Universal Gravitation and Newton's Second Law of Motion to determine orbit parameters
      */
     public void run() {
 
-        double time = 0;
-        //double dt = SolarSystemInterface.dt / 100;
+        double time = 0;                                        // will keep track of total steps in the orbit
 
-        double distance = this.getDistanceFromCentralBody();
-        double starMass = star.getMass();
+        double distance = this.getDistanceFromCentralBody();    // orbit radius
+        double starMass = star.getMass();                       // star's mass
 
-        double prevX = getX();
-        double prevY = getY();
+        double prevX = getX();                                  // keeps track of the the previous x - coordinate
+        double prevY = getY();                                  // keeps track of the previous y - coordinate
 
-        double theta = Math.atan(getY() / getX());
+        double theta = Math.atan(getY() / getX());              // angle relative to the x - axis
 
-        double acceleration = G * starMass / Math.pow(distance, 2);       //Acceleration constant (for now ...)
+        /*
+         * Acceleration calculated with Newton's Law of Gravitation and Newton's Second Law
+         * (1) Force = ThisBodyMass * acceleration
+         * (2) GravitationalForce = GravitationalConstant * OtherBodyMass * ThisBodyMass / (distance between the center of mass of the two bodies) ^ 2
+         *
+         * Using (1) and (2): acceleration = GravitationalConstant * OtherBodyMass / (distance between the center of mass of the two bodies) ^ 2
+         */
+        double acceleration = G * starMass / Math.pow(distance, 2);
 
-        double a_y = acceleration * Math.sin(theta);
-        double a_x = acceleration * Math.cos(theta);
-        double prevAx;
-        double prevAy;
 
+        /*
+         * Velocity calculated using the definition of centripetal acceleration
+         *      acceleration = (centripetal velocity) ^ 2 / radius
+         *      -> (centripetal velocity) = sqrt(acceleration * radius)
+         */
         double velocity = Math.sqrt(acceleration * distance);
 
-        //double tangentialSpeed = Math.sqrt(acceleration * radiusDistance);   //Tangenital velocity constant (for now ...)
-        double v_y = velocity * Math.cos(theta);
-        double v_x = -velocity * Math.sin(theta);
+        double v_y = velocity * Math.cos(theta);                                // y - component of valocity
+        double v_x = -velocity * Math.sin(theta);                               // x - component of velocity
 
-        while (!isToPause()) {
+        while (!isToPause()) {                                                  // checks if orbit does not need to stop
 
+            setX(getX() + v_x * (dt / ds.speedControl));                        // updates x - coordinate
+            setY(getY() + v_y * (dt / ds.speedControl));                        // updates y - coordinate
 
-            setX(getX() + v_x * (dt / ds.speedControl));
-            setY(getY() + v_y * (dt / ds.speedControl));
+            theta = Math.atan(getY() / getX());                                 // updates theta
 
-            theta = Math.atan(getY() / getX());
-
-            if (getX() < 0) {
+            if (getX() < 0) {                                                   // updates theta if x < 0 because arctan range is (- pi /2, pi / 2)
                 theta += Math.PI;
             }
 
-            v_y = velocity * Math.cos(theta);
-            v_x = -velocity * Math.sin(theta);
+            v_y = velocity * Math.cos(theta);                                   // updates y - component of velocity
+            v_x = -velocity * Math.sin(theta);                                  // updates x - component of velocity
 
-            time += dt;
+            time += dt;                                                         // updates the total steps
 
-            //This solves the blinking plot problem by only plotting fewer times
-            if (time % (SolarSystemInterface.dt * ds.timeInterval) == 0) {
+            if (time % (SolarSystemInterface.dt * ds.timeInterval) == 0) {      // plots at certain step intervals
 
-                plot.addPoint(Color.black, pointSize, prevX / AU / divisor, prevY / AU / divisor);
-                plot.addPoint(this.color, pointSize, getX() / AU / divisor, getY() / AU / divisor);
+                plot.addPoint(Color.black, pointSize, prevX / AU / divisor, prevY / AU / divisor);  // replace the previous point with a black point
+                plot.addPoint(this.color, pointSize, getX() / AU / divisor, getY() / AU / divisor); // add a new point
                 prevX = getX();
                 prevY = getY();
-                plot.repaint();
+                plot.repaint();                                                                            // updates the display
 
             }
 
-
-            /*
-             * This is the Verlet Algorithm implementation
-             * Will likely come back to once threads and plotter are debugged
-             */
-            /*
-            setX(getX() + v_x * dt + 0.5 * a_x * Math.pow(dt, 2));
-            setY(getY() + v_y * dt + 0.5 * a_y * Math.pow(dt, 2));
-
-            v_x += 0.5 * a_x * dt;
-            v_y  += 0.5 * a_y * dt;
-
-            distance = Math.sqrt(Math.pow(getX(), 2) + Math.pow(getY(), 2));
-            theta = Math.atan(getY() / getX());
-
-            if (getX() < 0) {
-                theta += Math.PI;
-            }
-
-            prevAx = a_x;
-            prevAy = a_y;
-            acceleration = G * starMass / Math.pow(distance, 2);
-            a_y = -acceleration * Math.sin(theta);
-            a_x = -acceleration * Math.cos(theta);
-
-            v_x += 0.5 * (prevAx + a_x) * dt;
-            v_y += 0.5 * (prevAy + a_y) * dt;
-
-            /*if (!toPause()) {
-                time += SolarSystemInterface.dt;
-            }*/
         }
-        //Thread.currentThread().interrupt();
 
     }
 

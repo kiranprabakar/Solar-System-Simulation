@@ -2,11 +2,17 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * This class serves as a storage of data that will be changed throughout the runtime of each instance of the solar system
+ */
 public class DataStorage {
 
+    /*
+     * This is the dataset for the planets
+     */
     ArrayList<String> planetNames;
     ArrayList<Double> planetDiameters;
-    ArrayList<Double> planetDistancefromCentralBody;
+    ArrayList<Double> planetDistancefromCentralBody;        // distance from the star
     ArrayList<Double> planetMass;
     ArrayList<Color> planetColors;
     ArrayList<Integer> planetPointSizes;
@@ -18,23 +24,17 @@ public class DataStorage {
     ArrayList<Integer> planetYCoordinateSection;
 
 
+
+
     /*
      * This is the dataset for the stars
      */
     ArrayList<String> starNames;
     ArrayList<Double> starDiameters;
-    ArrayList<Double> starDistancefromCentralBody;
     ArrayList<Double> starMass;
     ArrayList<Color> starColors;
     ArrayList<Integer> starPointSizes;
 
-    /*
-     * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
-     */
-    ArrayList<Integer> starXCoordinateSection;
-    ArrayList<Integer> starYCoordinateSection;
-
-    ArrayList<String> starTypes;
 
 
 
@@ -44,11 +44,11 @@ public class DataStorage {
     ArrayList<String> satelliteNames;
     ArrayList<String> satelliteType;
     ArrayList<Double> satelliteDiameters;
-    ArrayList<Double> satelliteDistancefromCentralBody;
-    ArrayList<Planet> satelliteCentralBody;
+    ArrayList<Double> satelliteDistancefromCentralBody;     // distance from the central planet
+    ArrayList<Planet> satelliteCentralBody;                 // planets that the satellites are allowed to orbit
     ArrayList<Double> satelliteMass;
     ArrayList<Color> satelliteColors;
-    ArrayList<String> satelliteCentralBodyNames;
+    ArrayList<String> satelliteCentralBodyNames;            // the names of the planets that the satellites are allowed to orbit
     ArrayList<Integer> satellitePointSizes;
 
     /*
@@ -57,9 +57,15 @@ public class DataStorage {
     ArrayList<Integer> satelliteXCoordinateSection;
     ArrayList<Integer> satelliteYCoordinateSection;
 
-    int timeInterval, speedControl, bodyLimit;
+    int timeInterval;                       // time interval that determines how often points will be plotted for each body
+    int speedControl;                       // determines the speed of the bodies where a lower speed control is faster (Range: 1 <= speed control <= 400)
 
+    int bodyLimit;                          // The amount of bodies a solar system can hold due to CPU performance limitations
+                                            // based on how many processors are available in the user's system
 
+    /**
+     * Creates a new storage of data that will be used by many classes
+     */
     public DataStorage() {
 
         /*
@@ -80,7 +86,7 @@ public class DataStorage {
 
 
         /*
-         * Multiply the x and y coordinate multiples by distance in AU to find the true coordinates for each body
+         * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
          */
          planetXCoordinateSection = new ArrayList<>(Arrays.asList(1, 0, -1,
                 0, 1 , 0, -1, 0));
@@ -122,8 +128,8 @@ public class DataStorage {
         timeInterval = 1000000;
         speedControl = 100;
 
-        int cores = Runtime.getRuntime().availableProcessors();
-        bodyLimit = cores + 2;
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        bodyLimit = availableProcessors + 2;                                  // determines the body limit by adding 2 to the number of cores available in the system
 
     }
     
