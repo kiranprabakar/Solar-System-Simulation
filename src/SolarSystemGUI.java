@@ -10,14 +10,14 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
     private SolarSystem solarSystem;                                                // the solar system associated with this
 
-    private Panel controlPanel;                                                     // the main panel
+    private Panel controlPanel;                                                     // the main panel that will hold the control buttons
     private Frame controlFrame;                                                     // the main frame
 
     private Button addPlanet, addStar, addSatelliteMoon;                            // buttons to add bodies
     private Button start, stop, slowDown, speedUp;                                  // buttons to alter the simulation
 
     private Frame addPlanetsFrame;                                                  // the frame to add planets
-    private Panel addPlanetsPanel;                                                  // the panel to add planets
+    private Panel addPlanetsPanel;                                                  // the panel to add the buttons for planets
 
     private Frame addStarFrame;                                                     // the frame to add a star
     private Panel addStarPanel;                                                     // the panel to add a star
@@ -485,6 +485,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
         controlFrame.setResizable(true);
         controlFrame.setVisible(true);
+
+        alert(intro);                                                       // gives the user information on how to use this program
     }
 
     /**
@@ -511,9 +513,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
             } else {
                 alert("A star already exists!");
             }
-        } catch (SolarSystemException ss) {                                         // throw exception if error occurs
-            ss.printStackTrace();
-        }
+        } catch (SolarSystemException ss) { }                                       // throw exception if error occurs
 
     }
 
@@ -551,9 +551,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                     alert("Sorry, no more bodies can be added!");
                 }
             }
-        } catch (SolarSystemException ss) {
-            ss.printStackTrace();
-        }
+        } catch (SolarSystemException ss) { }
 
     }
 
@@ -581,9 +579,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                                 satellite.relativeY / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
                         solarSystem.getPlot().repaint();
                         ++bodyCount;                                                // updates the body count
-                    } catch (Exception s) {
-                        s.printStackTrace();
-                    }
+                    } catch (Exception s) { }
                 } else {
                     alert("Sorry, no more bodies can be added!");
                 }
@@ -599,15 +595,12 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                         solarSystem.addSatellite(satellite);
                         solarSystem.getExecutorService().execute(satellite);        // runs the created satellite
                         ++bodyCount;
-                    } catch (Exception s) {
-                        s.printStackTrace();
-                    }
+                    } catch (Exception s) { }
                 } else {
                     alert("Cannot add any more bodies!");
                 }
             }
-        } catch (Exception ss) {
-            ss.printStackTrace();
+        } catch (Exception e) {
             alert("Sorry, this satellite already exists");
         }
 

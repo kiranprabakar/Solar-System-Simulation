@@ -380,6 +380,11 @@ public class SolarSystem implements SolarSystemInterface {
 
         String type = attributes[6];                                                // whether the body is a satellite or a moon
 
+        if (!type.equals("Moon") && !type.equals("Satellite")) {                    // alerts user if the entered type is invalid
+            alert("Invalid type!");
+            throw new SolarSystemException("Invalid type!");
+        }
+
         int index = ds.planetNames.indexOf(attributes[4]);
 
         if (index < 0) {                                                            // checks if the central planet exists
