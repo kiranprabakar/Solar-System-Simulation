@@ -4,9 +4,11 @@ A basic simulation of a star system using Multithreading and User Interface elem
 ## How to run the simulation
 
 Clone this repository to a directory on your computer. Once that is done go to the src subdirectory.
-To compile, type "javac SolarSystemSim.java" and to run, type "java SolarSystemSim"
+To compile on terminal, type "javac SolarSystemSim.java" and to run, type "java SolarSystemSim"
 
 Once the simulation is running, read the first pop-up message carefully. It contains useful information that will make your experience easier. 
+
+Additionally, this simulation uses multiple cores, so having too many background processes running simultaneously may hinder the speed of the simulation. 
 
 ### Prerequisites
 
