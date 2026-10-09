@@ -188,8 +188,8 @@ public class SolarSystem implements SolarSystemInterface {
             throw new SolarSystemException("Wrong number of characterisitcs entered!");
         }
 
-        for (int i = 1; i < attributes.length; i++) {                               // makes sure all attributes can be read properly
-            attributes[i] = attributes[i].substring(1);
+        for (int i = 0; i < attributes.length; i++) {                               // removes surrounding spaces so all attributes can be read properly
+            attributes[i] = attributes[i].trim();
         }
 
         String name = attributes[0];
@@ -264,13 +264,13 @@ public class SolarSystem implements SolarSystemInterface {
             throw new SolarSystemException("Wrong number of characterisitcs entered!");
         }
 
+        for (int i = 0; i < attributes.length; i++) {                               // removes surrounding spaces so all attributes can be read properly
+            attributes[i] = attributes[i].trim();
+        }
+
         if (ds.planetNames.indexOf(attributes[0]) >= 0) {
             alert("Planet with the same name already exists!");
             throw new SolarSystemException("Planet with the same name already exists!");
-        }
-
-        for (int i = 1; i < attributes.length; i++) {                               // makes sure all attributes can be read properly
-            attributes[i] = attributes[i].substring(1);
         }
 
         if (ds.planetNames.indexOf(attributes[4]) < 0) {                            // checks if the similar planet exists
@@ -336,13 +336,13 @@ public class SolarSystem implements SolarSystemInterface {
             throw new SolarSystemException("Wrong number of characterisitcs entered!");
         }
 
+        for (int i = 0; i < attributes.length; i++) {                               // removes surrounding spaces so all attributes can be read properly
+            attributes[i] = attributes[i].trim();
+        }
+
         if (ds.satelliteNames.indexOf(attributes[0]) >= 0) {
             alert("Satellite with the same name already exists!");
             throw new SolarSystemException("Satellite with the same name already exists!");
-        }
-
-        for (int i = 1; i < attributes.length; i++) {                               // makes sure all attributes can be read properly
-            attributes[i] = attributes[i].substring(1);
         }
 
         String name = attributes[0];
@@ -370,7 +370,7 @@ public class SolarSystem implements SolarSystemInterface {
                 color = Color.white;
                 break;
             case "Gray":
-                color = Color.white;
+                color = Color.gray;
                 break;
             default:
                 alert("Invalid Color!");
@@ -392,35 +392,11 @@ public class SolarSystem implements SolarSystemInterface {
             throw new SolarSystemException("Planet does not exist!");
         }
 
-        int ind = ds.satelliteCentralBodyNames.indexOf(ds.planetNames.get(index));
+        Planet planet = getPlanets().get(attributes[4]);                            // gets the planet that the satellite orbits
 
-        if (ind < 0) {                                                              // occurs if the planet can be used for satellites, but has not been
-                                                                                    // added to the correct data store location
+        if (planet == null) {                                                       // alert the user if planet has not been added to the solar system yet
             alert("Planet has not been added yet!");
             throw new SolarSystemException("Planet has not been added yet!");
-
-        }
-
-        boolean found = false;                                                      // checks if the planet has been added
-
-        for (int i = 0; i < ds.satelliteCentralBody.size(); i++) {                  // looks through the planets that can have satellites orbiting them
-
-            if (ds.satelliteCentralBody.get(i).retName().equals(ds.satelliteCentralBodyNames.get(ind))) {   // set found to true if found
-                found = true;
-            }
-
-        }
-
-        if (!found) {                                                               // alert the user if planet has not been added yet
-            alert("Planet has not been added yet!");
-            throw new SolarSystemException("Planet has not been added yet!");
-        }
-
-        Planet planet;
-        if (ind > 1) {
-            planet = ds.satelliteCentralBody.get(ind - 2);                       // gets the planet that the satellite orbits
-        } else {
-            planet = ds.satelliteCentralBody.get(ind);
         }
 
         ds.satelliteNames.add(name);                                               // updates the data store as necessary
@@ -433,9 +409,11 @@ public class SolarSystem implements SolarSystemInterface {
         ds.satelliteYCoordinateSection.add(1);
         ds.satellitePointSizes.add(3);
 
+        int satIndex = ds.satelliteNames.size() - 1;                               // index of the new satellite in the data store
+
         Satellite satellite = new Satellite(name, diameter, dist, mass, planet, plot, color,            // creates a new satellite
-                ds.satelliteXCoordinateSection.get(ind) * (ds.satelliteDistancefromCentralBody.get(ind)) / AU + planet.getX() / AU,
-                ds.satelliteYCoordinateSection.get(ind) * (ds.satelliteDistancefromCentralBody.get(ind)) / AU + planet.getY() / AU, ds);
+                ds.satelliteXCoordinateSection.get(satIndex) * (ds.satelliteDistancefromCentralBody.get(satIndex)) / AU + planet.getX() / AU,
+                ds.satelliteYCoordinateSection.get(satIndex) * (ds.satelliteDistancefromCentralBody.get(satIndex)) / AU + planet.getY() / AU, ds);
 
         return satellite;
 

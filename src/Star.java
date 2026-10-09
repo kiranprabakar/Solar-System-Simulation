@@ -9,7 +9,6 @@ public class Star extends SolarSystemBody {
     private SolarSystemPlot plot;                       // the plot associated with this
     private Color color;                                // the color that will be used for display purposes
 
-    private boolean pause;                              // checks if the user wants to stop the simulation
     private int pointSize;                              // size of the plot point
 
     private DataStorage ds;                             // the data store associated with this star
@@ -58,27 +57,11 @@ public class Star extends SolarSystemBody {
     }
 
     /**
-     * @return - flag to stop the star thread
-     */
-    @Override
-    public boolean toPause() {
-        return pause;
-    }
-
-    /**
-     * Determines if the thread should stop
-     */
-    @Override
-    public void pause() {
-        pause = true;
-    }
-
-    /**
      * This executes until the user wants to stop the simulation
      */
     public void run() {
 
-        while (!toPause()) {                                    // checks if the simulation has not been stopped
+        while (!toPause()) {                                    // checks if the simulation has not been stopped (synchronized in SolarSystemBody)
             plot.addPoint(this.color, pointSize, 0, 0);
         }
 
