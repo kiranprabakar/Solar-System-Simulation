@@ -8,7 +8,7 @@ To compile on terminal, type "javac SolarSystemSim.java" and to run, type "java 
 
 Once the simulation is running, read the first pop-up message carefully. It contains useful information that will make your experience easier. 
 
-Additionally, this simulation uses multiple cores, so having too many background processes running simultaneously may hinder the speed of the simulation. 
+Every body pulls on every other body with real Newtonian gravity (velocity Verlet integration), and planets start on their real elliptical orbits. The display is drawn to true scale: scroll to zoom, drag to pan, and double-click to fit all planets in view. Moons and satellites are drawn slightly farther from their planet when zoomed out so they stay visible.
 
 ### Prerequisites
 

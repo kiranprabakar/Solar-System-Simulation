@@ -13,8 +13,7 @@ public class SolarSystemSim implements SolarSystemInterface {
 
         SolarSystem solarSystem = new SolarSystem();                                                    // creates a solar system
 
-        SolarSystemPlot plot = new SolarSystemPlot("Solar System", -coordinateMax, coordinateMax,  // creates the solar system display
-                -coordinateMax, coordinateMax);
+        SolarSystemPlot plot = new SolarSystemPlot("Solar System");                                   // creates the solar system display
 
         DataStorage dataStorage = new DataStorage();                                                    // creates a data store
 

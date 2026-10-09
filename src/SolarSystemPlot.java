@@ -1,124 +1,391 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.*;
+import java.util.*;
+import java.util.List;
 
 /**
- * The object that will display the solar system
+ * The object that will display the solar system at true scale, with zooming and panning
  */
 public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
 
     private int plotWidth = SolarSystemInterface.plotWidth;		 // width of the plot (pixels)
     private int plotHeight = SolarSystemInterface.plotHeight;	 // height of the plot (pixels)
 
-    private static int plotCount = 0;	    // points added
-    private String plotTitle;				// plot title
-    private double xMin, xMax, yMin, yMax;	// max and min of x and y
-    private double xRange, yRange; 			// plot ranges
+    private double centerX, centerY;            // the point in space shown at the center of the plot (meters)
+    private double metersPerPixel;              // the zoom level
 
-    private int pointSize = 3;				// width of plot symbols, 3 pixels by default
-    private Color defaultBackground = Color.black;
+    private List<SolarSystemBody> bodies = new ArrayList<>();   // the bodies drawn in the last frame
+    private String status = "";                                 // the status line drawn in the last frame
 
-    private int lastx, lasty;				// pixel coordinates of last point plotted
-    private Frame plotFrame;				// the window that will hold the plot
+    private int dragX, dragY;                   // where the last mouse drag event happened
+
+    private final int[] starfieldX, starfieldY, starfieldBrightness;    // background stars (pixels)
 
     /*
      * Off Screen Image and Graphics
      */
     private Image offScreenImage;			// off-screen image where we draw
-    private Graphics offScreenGraphics;		// graphics context for off-screen image
+    private Graphics2D offScreenGraphics;	// graphics context for off-screen image
 
 
     /**
      * Creates a new plot
+     *
+     * @param title - the window title
      */
-    public SolarSystemPlot(String title, double xMin, double xMax, double yMin, double yMax) {
+    public SolarSystemPlot(String title) {
 
-        this.plotCount += 1;
-        this.plotTitle = title;
+        Frame plotFrame = new Frame(title);         // the window that will hold the plot
 
-        this.xMin = xMin;
-        this.xMax = xMax;
-        this.yMin = yMin;
-        this.yMax = yMax;
-
-        this.xRange = xMax - xMin;
-        this.yRange = yMax - yMin;
-
-        this.plotFrame = new Frame(plotTitle);
-
-        this.plotFrame.addWindowListener(new WindowAdapter() {	// remove this if you don't want the program
-            public void windowClosing(WindowEvent e) {		// to quit when close-box is clicked
+        plotFrame.addWindowListener(new WindowAdapter() {	    // quits the program when the window is closed
+            public void windowClosing(WindowEvent e) {
                 System.exit(0);
             }});
 
         Panel panel = new Panel();				        // panel to hold the canvas
-        this.plotFrame.add(panel,BorderLayout.CENTER);	// panel added to the center of the window
+        plotFrame.add(panel, BorderLayout.CENTER);	    // panel added to the center of the window
         panel.add(this);							    // add canvas to the window
 
-        this.setSize(this.plotWidth + 1,this.plotHeight + 1);			// size of the plot canvas
+        this.setSize(plotWidth, plotHeight);			// size of the plot canvas
 
-        this.plotFrame.setResizable(true);
-        this.plotFrame.pack();
-        this.offScreenImage = createImage(plotWidth + 1,plotHeight + 1);	// this image is where points will be added to
+        plotFrame.setResizable(false);
+        plotFrame.pack();
+        this.offScreenImage = createImage(plotWidth, plotHeight);	        // this image is where each frame is drawn
+        this.offScreenGraphics = (Graphics2D) offScreenImage.getGraphics();
+        offScreenGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        this.offScreenGraphics = offScreenImage.getGraphics();		                // get the offscreen graphics
+        Random random = new Random(42);                 // the same starfield every time
+        int stars = 250;
+        starfieldX = new int[stars];
+        starfieldY = new int[stars];
+        starfieldBrightness = new int[stars];
+        for (int i = 0; i < stars; i++) {
+            starfieldX[i] = random.nextInt(plotWidth);
+            starfieldY[i] = random.nextInt(plotHeight);
+            starfieldBrightness[i] = 40 + random.nextInt(80);
+        }
 
-        clearThePlot();                                                             // sets the background to black
-        this.plotFrame.setLocation(this.plotWidth + 20 * plotCount,20 * plotCount);
-        this.plotFrame.setVisible(true);
+        addMouseWheelListener(e -> zoom(e.getX(), e.getY(), Math.pow(1.2, e.getPreciseWheelRotation())));
+
+        addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                dragX = e.getX();
+                dragY = e.getY();
+            }
+
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {           // double-click fits all planets in view
+                    fitToBodies(bodies);
+                    redraw();
+                }
+            }
+        });
+
+        addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {    // drags the view
+                centerX -= (e.getX() - dragX) * metersPerPixel;
+                centerY += (e.getY() - dragY) * metersPerPixel;
+                dragX = e.getX();
+                dragY = e.getY();
+                redraw();
+            }
+        });
+
+        resetView();
+        redraw();
+        plotFrame.setLocation(plotWidth + 20, 20);
+        plotFrame.setVisible(true);
     }
 
     /**
-     * Add point
+     * Zooms the view while keeping the point under the mouse still
+     *
+     * @param pixelX - x - coordinate of the mouse
+     * @param pixelY - y - coordinate of the mouse
+     * @param factor - how much to zoom out (less than 1 zooms in)
      */
-    public synchronized void addPoint(Color color, int pointSize, double X, double Y) {
+    private void zoom(int pixelX, int pixelY, double factor) {
 
-        offScreenGraphics.setColor(color);
-        setPointSize(pointSize);
-        int pixelx = (int) Math.round(plotWidth * (X - xMin) / xRange);	    // convert x to a screen coordinate
-        int pixely = (int) Math.round(plotHeight * (yMax - Y) / yRange);	// remember that screen y is measured downward
-        int offset = (int) (pointSize / 2.0);				                // offset of top-left corner (rounded down)
+        double worldX = toWorldX(pixelX);
+        double worldY = toWorldY(pixelY);
 
-        offScreenGraphics.fillOval(pixelx-offset,pixely-offset,pointSize-1,pointSize-1);
+        metersPerPixel = Math.max(1E3, Math.min(1E12, metersPerPixel * factor));    // from about the size of a moon to far beyond the planets
 
-        lastx = pixelx;
-        lasty = pixely;
+        centerX = worldX - (pixelX - plotWidth / 2.0) * metersPerPixel;
+        centerY = worldY + (pixelY - plotHeight / 2.0) * metersPerPixel;
+
+        redraw();
 
     }
 
     /**
-     * Updates the off-screen image
+     * Shows the default view, centered on the origin
      */
-    public synchronized void repaint() {
-        super.repaint();
+    public void resetView() {
+        centerX = 0;
+        centerY = 0;
+        metersPerPixel = coordinateMax * AU / (plotWidth / 2.0);
     }
 
     /**
-     * Change point size
+     * Centers the view on the star and zooms so every planet's orbit fits
+     *
+     * @param bodies - the bodies in the solar system
      */
-    public void setPointSize(int pointSize) {
-        this.pointSize = pointSize;
+    public void fitToBodies(List<SolarSystemBody> bodies) {
+
+        SolarSystemBody star = null;
+        double radius = 0;
+
+        for (SolarSystemBody body : bodies) {
+            if (body instanceof Star) {
+                star = body;
+            }
+        }
+
+        if (star == null) {
+            resetView();
+            return;
+        }
+
+        for (SolarSystemBody body : bodies) {
+            if (body instanceof Planet) {
+                double distance = Math.hypot(body.getX() - star.getX(), body.getY() - star.getY());
+                radius = Math.max(radius, Math.max(distance, body.getDistanceFromCentralBody()));
+            }
+        }
+
+        if (radius == 0) {                              // only a star, so show the inner solar system
+            radius = 2 * AU;
+        }
+
+        centerX = star.getX();
+        centerY = star.getY();
+        metersPerPixel = radius * 1.15 / (plotWidth / 2.0);    // leaves a margin around the outermost orbit
+
+    }
+
+    private double toPixelX(double x) {
+        return plotWidth / 2.0 + (x - centerX) / metersPerPixel;
+    }
+
+    private double toPixelY(double y) {
+        return plotHeight / 2.0 - (y - centerY) / metersPerPixel;    // screen y is measured downward
+    }
+
+    private double toWorldX(double pixelX) {
+        return centerX + (pixelX - plotWidth / 2.0) * metersPerPixel;
+    }
+
+    private double toWorldY(double pixelY) {
+        return centerY - (pixelY - plotHeight / 2.0) * metersPerPixel;
+    }
+
+    /**
+     * @param body - a body
+     * @return - how large the body is drawn (pixels): its true size, but at least its point size
+     */
+    private double drawnSize(SolarSystemBody body) {
+        return Math.min(4000, Math.max(body.getPointSize(), body.getDiameter() / metersPerPixel));
+    }
+
+    /**
+     * Satellites are usually too close to their planet to see at solar system scale,
+     * so their distance from the planet is stretched to at least a few pixels. The physics is not affected.
+     *
+     * @param body - a body
+     * @return - pixels per meter for drawing the body's position relative to its central body
+     */
+    private double offsetScale(SolarSystemBody body) {
+
+        if (!(body instanceof Satellite)) {
+            return 1 / metersPerPixel;
+        }
+
+        int rank = 0;                                   // spreads out satellites of the same planet, closest first
+        for (SolarSystemBody other : bodies) {
+            if (other instanceof Satellite && other != body && other.getParent() == body.getParent()
+                    && other.getDistanceFromCentralBody() < body.getDistanceFromCentralBody()) {
+                rank++;
+            }
+        }
+
+        double minPixels = drawnSize(body.getParent()) / 2 + 10 + 8 * rank;
+
+        return Math.max(1 / metersPerPixel, minPixels / body.getDistanceFromCentralBody());
+
+    }
+
+    /**
+     * @param body - a body
+     * @return - where the body is drawn {x, y} (pixels)
+     */
+    private double[] displayPosition(SolarSystemBody body) {
+
+        if (!(body instanceof Satellite)) {
+            return new double[] {toPixelX(body.getX()), toPixelY(body.getY())};
+        }
+
+        double[] parent = displayPosition(body.getParent());
+        double scale = offsetScale(body);
+
+        return new double[] {parent[0] + (body.getX() - body.getParent().getX()) * scale,
+                parent[1] - (body.getY() - body.getParent().getY()) * scale};
+
+    }
+
+    /**
+     * Draws a new frame
+     *
+     * @param bodies - the bodies to draw
+     * @param status - the status line to show
+     */
+    public void render(List<SolarSystemBody> bodies, String status) {
+        this.bodies = bodies;
+        this.status = status;
+        redraw();
+    }
+
+    /**
+     * Draws the last bodies and status again, for example after the view changes
+     */
+    private void redraw() {
+
+        Graphics2D g = offScreenGraphics;
+
+        g.setColor(Color.black);                                            // background
+        g.fillRect(0, 0, plotWidth, plotHeight);
+
+        for (int i = 0; i < starfieldX.length; i++) {
+            int b = starfieldBrightness[i];
+            g.setColor(new Color(b, b, b));
+            g.fillRect(starfieldX[i], starfieldY[i], 1, 1);
+        }
+
+        for (SolarSystemBody body : bodies) {                               // orbit trails, fading with age
+            drawTrail(g, body);
+        }
+
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+
+        for (SolarSystemBody body : bodies) {                               // the bodies and their names
+            double[] p = displayPosition(body);
+            double size = drawnSize(body);
+
+            if (body instanceof Star) {                                     // a soft glow around the star
+                for (int i = 3; i >= 1; i--) {
+                    Color c = body.getColor();
+                    g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 25));
+                    double glow = size + 8 * i;
+                    g.fill(new Ellipse2D.Double(p[0] - glow / 2, p[1] - glow / 2, glow, glow));
+                }
+            }
+
+            g.setColor(body.getColor());
+            g.fill(new Ellipse2D.Double(p[0] - size / 2, p[1] - size / 2, size, size));
+
+            if (offsetScale(body) <= 1 / metersPerPixel) {                  // satellites are only named once zoomed in to their true distance
+                g.setColor(new Color(200, 200, 200));
+                g.drawString(body.retName(), (float) (p[0] + size / 2 + 3), (float) (p[1] - size / 2 - 2));
+            }
+        }
+
+        drawScaleBar(g);
+
+        g.setColor(Color.white);
+        g.drawString(status, 10, 18);
+        g.setColor(Color.gray);
+        g.drawString("Scroll: zoom    Drag: pan    Double-click: fit", 10, plotHeight - 10);
+
+        repaint();
+
+    }
+
+    /**
+     * Draws a body's recent orbit around its central body
+     *
+     * @param g - where to draw
+     * @param body - the body
+     */
+    private void drawTrail(Graphics2D g, SolarSystemBody body) {
+
+        int count = body.getTrailCount();
+
+        if (count < 2) {
+            return;
+        }
+
+        double[] anchor = displayPosition(body.getParent());     // trails are stored relative to the central body
+        double scale = offsetScale(body);
+        Color c = body.getColor();
+
+        g.setStroke(new BasicStroke(1.2f));
+
+        double prevX = anchor[0] + body.getTrailX(0) * scale;
+        double prevY = anchor[1] - body.getTrailY(0) * scale;
+
+        for (int i = 1; i < count; i++) {
+            double x = anchor[0] + body.getTrailX(i) * scale;
+            double y = anchor[1] - body.getTrailY(i) * scale;
+            int alpha = 20 + 140 * i / count;                     // older points are fainter
+            g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
+            g.draw(new Line2D.Double(prevX, prevY, x, y));
+            prevX = x;
+            prevY = y;
+        }
+
+    }
+
+    /**
+     * Draws a bar showing a round distance at the current zoom
+     *
+     * @param g - where to draw
+     */
+    private void drawScaleBar(Graphics2D g) {
+
+        double target = 120 * metersPerPixel;                       // about 120 pixels long
+        boolean useAU = target >= 0.01 * AU;
+        double unit = useAU ? AU : 1000;
+        double value = target / unit;
+
+        double magnitude = Math.pow(10, Math.floor(Math.log10(value)));     // rounds down to 1, 2 or 5 times a power of ten
+        double nice = value / magnitude >= 5 ? 5 * magnitude : value / magnitude >= 2 ? 2 * magnitude : magnitude;
+
+        double length = nice * unit / metersPerPixel;
+        int x = 10, y = plotHeight - 30;
+
+        g.setColor(Color.lightGray);
+        g.setStroke(new BasicStroke(1f));
+        g.draw(new Line2D.Double(x, y, x + length, y));
+        g.draw(new Line2D.Double(x, y - 4, x, y + 4));
+        g.draw(new Line2D.Double(x + length, y - 4, x + length, y + 4));
+
+        String label = useAU ? String.format("%s AU", trimNumber(nice)) : String.format("%s km", trimNumber(nice));
+        g.drawString(label, (float) (x + length + 6), y + 4);
+
+    }
+
+    /**
+     * @param value - a number
+     * @return - the number without unnecessary decimals
+     */
+    private static String trimNumber(double value) {
+        return value >= 1 ? String.format("%,.0f", value) : String.format("%.3f", value).replaceAll("0+$", "");
     }
 
     /**
      * Copies the off-screen image
      */
-    public synchronized void paint(Graphics g) {
-        g.drawImage(offScreenImage,0,0,plotWidth+1,plotHeight+1,this);
+    public void paint(Graphics g) {
+        g.drawImage(offScreenImage, 0, 0, this);
     }
 
     /**
      * Does not redraw the background
      */
-    public synchronized void update(Graphics g) {
+    public void update(Graphics g) {
         paint(g);
-    }
-
-    /**
-     * Sets the plot to black
-     */
-    public synchronized void clearThePlot() {
-        offScreenGraphics.setColor(defaultBackground);
-        offScreenGraphics.fillRect(0,0,plotWidth+1,plotHeight+1);	// paint the background black
     }
 
 }

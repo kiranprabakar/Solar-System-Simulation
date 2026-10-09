@@ -32,10 +32,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
     private Button addSun, addBetelgeuse, addCustomStar;                            // the buttons to add a star
     private Button addISS, addMoonOfEarth, addCustomSatellite;                      // the buttons to add satellites or moons
 
-    private int bodyCount;                                                          // the amount of bodies in the solar system
     private boolean started;                                                        // whether the simulation has started or not
     private boolean starAdded;                                                      // whether a star has been added or not
-    private int bodyLimit;                                                          // the body limit
 
     private String text;                                                            // instruction text to display in the custom text field
 
@@ -47,10 +45,6 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
     public SolarSystemGUI(SolarSystem solarSystem) {
 
         this.solarSystem = solarSystem;                                             // sets the solar system
-
-        bodyLimit = solarSystem.getDs().bodyLimit;                              // gets the body limit
-
-        bodyCount = 0;                                                              // initializes the body count
 
         started = false;                                                            // has not started yet
         starAdded = false;                                                          // star does not exist yet
@@ -101,7 +95,6 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                 solarSystem.stopSimulation(started);
                 started = false;                                                    // resets started flag to false
                 starAdded = false;                                                  // resets starAdded flag to false
-                bodyCount = 0;                                                      // resets body count
 
             }
         });
@@ -115,14 +108,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
         speedUp.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (started) {
-                    if (solarSystem.getDs().speedControl > minSpeedControl) {       // makes sure simulation can go faster
-                        solarSystem.speedUpSimulation();
-                    } else {
-                        alert("Cannot speed up anymore!");
-                    }
-                } else {
-                    alert("Simulation is not running!");
+                if (!solarSystem.speedUpSimulation()) {                             // makes sure simulation can go faster
+                    alert("Cannot speed up anymore!");
                 }
             }
         });
@@ -136,14 +123,8 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
         slowDown.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (started) {
-                    if (solarSystem.getDs().speedControl < maxSpeedControl) {       // makes sure simulation can go slower
-                        solarSystem.slowSimulation();
-                    } else {
-                        alert("Cannot slow down anymore!");
-                    }
-                } else {
-                    alert("Simulation is not running!");
+                if (!solarSystem.slowSimulation()) {                                // makes sure simulation can go slower
+                    alert("Cannot slow down anymore!");
                 }
             }
         });
@@ -505,10 +486,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                 } else {
                     star = solarSystem.createCustomStar(string);                    // creates a custom star
                 }
-                solarSystem.addStar(star);                                          // adds the star to the solar system
-                solarSystem.getPlot().addPoint(star.getColor(), star.getPointSize(), star.getX(), star.getY()); // plots the star in the system
-                solarSystem.getPlot().repaint();                                    // repaints the plot
-                ++bodyCount;                                                        // increases the body count
+                solarSystem.addStar(star);                                          // adds the star to the solar system and displays it
                 starAdded = true;                                                   // indicates that a star has been added
             } else {
                 alert("A star already exists!");
@@ -532,77 +510,28 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
             } else {                                                            // creates a customized planet
                 planet = solarSystem.createCustomPlanet(string);
             }
-            if (!started) {
-                if (bodyCount < bodyLimit) {                                    // alerts the user if the body count is greater than or equal to the body limit
-                    solarSystem.addPlanet(planet);                              // adds planet to the solar system
-                    solarSystem.getPlot().addPoint(planet.getColor(), planet.getPointSize(),    // plots the planet
-                            planet.getX() / AU / planet.getDivisor(), planet.getY() / AU / planet.getDivisor());
-                    solarSystem.getPlot().repaint();                            // repaints the plot
-                    ++bodyCount;                                                // updates body count
-                } else {
-                    alert("Sorry, no more bodies can be added!");
-                }
-            } else {
-                if (bodyCount < bodyLimit) {                                    // alerts the user if the body count is greater than or equal to the body limit
-                    solarSystem.addPlanet(planet);                              // adds planet to the solar system
-                    solarSystem.getExecutorService().execute(planet);           // begins the planet's orbit
-                    ++bodyCount;                                                // updates body count
-                } else {
-                    alert("Sorry, no more bodies can be added!");
-                }
-            }
-        } catch (SolarSystemException ss) { }
+            solarSystem.addPlanet(planet);                                      // adds planet to the solar system, where it starts orbiting
+        } catch (SolarSystemException ss) { }                                   // the user has already been alerted
 
     }
 
     /**
      * Adds a new satellite to the solar system
      *
-     * @param string - either the name or characteristic string gof the satellite
+     * @param string - either the name or characteristic string of the satellite
      * @param custom - whether the satellite is default or customized
      */
     public void createNewSatellite(String string, boolean custom) {
 
         try {
-            if (!started) {                                                 // checks if simulation has started
-                if (bodyCount < bodyLimit) {                                // alerts the user if the body count is greater than or equal to the body limit
-                    try {
-                        Satellite satellite;
-                        if (!custom) {
-                            satellite = solarSystem.newSatellite(string);           // creates default satellite
-                        } else {
-                            satellite = solarSystem.createCustomSatellite(string);  // creates a custom satellite
-                        }
-                        solarSystem.addSatellite(satellite);                        // adds the satellite to the solar system
-                        solarSystem.getPlot().addPoint(satellite.getColor(), satellite.getPointSize(),              // plots the satellite
-                                satellite.relativeX / AU / satellite.getDivisor() + satellite.getBody().getX() / AU / satellite.getBody().getDivisor(),
-                                satellite.relativeY / AU / satellite.getDivisor() + satellite.getBody().getY() / AU / satellite.getBody().getDivisor());
-                        solarSystem.getPlot().repaint();
-                        ++bodyCount;                                                // updates the body count
-                    } catch (Exception s) { }
-                } else {
-                    alert("Sorry, no more bodies can be added!");
-                }
-            } else {                                                                // most of the code is similar to above
-                if (bodyCount < bodyLimit) {
-                    try {
-                        Satellite satellite;
-                        if (!custom) {
-                            satellite = solarSystem.newSatellite(string);
-                        } else {
-                            satellite = solarSystem.createCustomSatellite(string);
-                        }
-                        solarSystem.addSatellite(satellite);
-                        solarSystem.getExecutorService().execute(satellite);        // runs the created satellite
-                        ++bodyCount;
-                    } catch (Exception s) { }
-                } else {
-                    alert("Cannot add any more bodies!");
-                }
+            Satellite satellite;
+            if (!custom) {
+                satellite = solarSystem.newSatellite(string);                   // creates default satellite
+            } else {
+                satellite = solarSystem.createCustomSatellite(string);          // creates a custom satellite
             }
-        } catch (Exception e) {
-            alert("Sorry, this satellite already exists");
-        }
+            solarSystem.addSatellite(satellite);                                // adds the satellite to the solar system, where it starts orbiting
+        } catch (SolarSystemException ss) { }                                   // the user has already been alerted
 
     }
 

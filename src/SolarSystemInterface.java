@@ -3,8 +3,6 @@
  */
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 /*
  * These variables act as constants that will be used within most of the classes
@@ -16,25 +14,26 @@ public interface SolarSystemInterface {
     //The astronomical unit is a measurement of the distance between the Earth and the Sun
     double AU = 1.496 * Math.pow(10,11);        // meters in one astronomical unit (will be used in conversions)
 
-    double  dt = 1;                             // will be used as a factor for step size in orbits
+    double YEAR = 365.25 * 86400;               // seconds in one year
 
-    double innerPlanetDivisor = 0.5;            // determines how much the x and y coordinates of the inner planets need to be divided by to cleanly display on the plot
-    double outerPlanetDivisor = 1;              // determines how much the x and y coordinates of the outer planets except for Uranus and Neptune need to be divided by to cleanly display on the plot
-    double nepUrDivisor = 1;                    // determines how much the x and y coordinates of Uranus and Neptune need to be divided by to cleanly display on the plot
+    int stepsPerOrbit = 400;                    // the time step is small enough that the fastest orbit takes at least this many steps
+    int maxStepsPerFrame = 20000;               // caps the work per frame, so very high speeds slow down instead of freezing the display
+    int frameDelay = 16;                        // milliseconds between frames (about 60 frames per second)
 
-    double satelliteDivisor = 0.00001;          // determines how much the x and y coordinates of the satellites need to be divided by to cleanly display on the plot
-    double moonDivisor = 0.01;                  // determines how much the x and y coordinates of the moons need to be divided by to cleanly display on the plot
+    double defaultTimeScale = YEAR / 20;        // simulated seconds per real second (one Earth year every 20 seconds)
+    double minTimeScale = 1;                    // real time
+    double maxTimeScale = 1E10;
+
+    int trailLength = 150;                      // number of points in each body's orbit trail
 
     int plotWidth = 800;                        // width of the plot
     int plotHeight = 800;                       // height of the plot
 
-    int coordinateMax = 35;                     // upper bound of the plot (translates to 35 AU)
-
-    int minSpeedControl = 1;                    // will be used for speed control
-    int maxSpeedControl = 400;
+    int coordinateMax = 35;                     // half the width of the default view (translates to 35 AU)
 
     String[] starTypes = {"Main sequence", "Red giant", "White dwarf"};                             // allowed types of stars
     Color[] starColors = {Color.yellow, Color.red, Color.white};                                    // color for each type of star
+    int[] starTypePointSizes = {15, 20, 10};                                                        // display size for each type of star
 
     /*
      * This string gives the user program usage info as soon as the program is launched
@@ -45,12 +44,13 @@ public interface SolarSystemInterface {
             + "To start the simulation, click on \"Start\"\n"
             + "To stop or clear the simulation, click on \"Stop / Clear\"\n"
             + "To speed up or slow down the simulation, click on \"Speed up\" or \"Slow down\"\n"
-            + "\n" + "Keep in mind that bodies will not be placed in accurate positions on the display and the body sizes will not be proportional.\n"
-            + "This is to account for the massive distances between bodies and the relative smallness of each body\n"
+            + "\n" + "Every body pulls on every other body with real Newtonian gravity, and distances are drawn to true scale.\n"
+            + "Scroll on the display to zoom, drag to pan, and double-click to fit all planets in view.\n"
+            + "Moons and satellites are drawn slightly farther from their planet than they really are so they stay visible when zoomed out;\n"
+            + "zoom in close to a planet to see their true distances. Bodies are drawn at least a few pixels wide so they can be seen.\n"
             + "\n" + "IMPORTANT NOTE: When creating custom bodies, follow the instructions carefully.\n"
             + "Failing to do so can cause the whole body to not be created. "
-            + "This includes capitalization of the correct letters, commas in the correct spots, and spaces in the correct spots.\n"
-            + "Additionally, the capacity of the solar system is limited by the processing power of this computer, which is accounted for in the program\n";
+            + "This includes capitalization of the correct letters and commas in the correct spots.\n";
 
     /*
      * The text fields presented when the user selects to add a customized celestial body

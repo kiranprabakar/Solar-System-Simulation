@@ -16,9 +16,10 @@ public class DataStorage {
     ArrayList<Double> planetMass;
     ArrayList<Color> planetColors;
     ArrayList<Integer> planetPointSizes;
+    ArrayList<Double> planetEccentricities;                 // how elliptical each orbit is (0 is a circle)
 
     /*
-     * Multiply the x and y coordinate multiples by distance in AU to find the true coordinates for each body
+     * The direction from the star in which each planet starts its orbit
      */
     ArrayList<Integer> planetXCoordinateSection;
     ArrayList<Integer> planetYCoordinateSection;
@@ -45,23 +46,19 @@ public class DataStorage {
     ArrayList<String> satelliteType;
     ArrayList<Double> satelliteDiameters;
     ArrayList<Double> satelliteDistancefromCentralBody;     // distance from the central planet
-    ArrayList<Planet> satelliteCentralBody;                 // planets that the satellites are allowed to orbit
     ArrayList<Double> satelliteMass;
     ArrayList<Color> satelliteColors;
-    ArrayList<String> satelliteCentralBodyNames;            // the names of the planets that the satellites are allowed to orbit
+    ArrayList<String> satelliteCentralBodyNames;            // the name of the planet that each satellite orbits
     ArrayList<Integer> satellitePointSizes;
+    ArrayList<Double> satelliteEccentricities;              // how elliptical each orbit is (0 is a circle)
 
     /*
-     * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
+     * The direction from the planet in which each satellite starts its orbit
      */
     ArrayList<Integer> satelliteXCoordinateSection;
     ArrayList<Integer> satelliteYCoordinateSection;
 
-    int timeInterval;                       // time interval that determines how often points will be plotted for each body
-    int speedControl;                       // determines the speed of the bodies where a lower speed control is faster (Range: 1 <= speed control <= 400)
-
-    int bodyLimit;                          // The amount of bodies a solar system can hold due to CPU performance limitations
-                                            // based on how many processors are available in the user's system
+    double timeScale;                       // simulated seconds per real second
 
     /**
      * Creates a new storage of data that will be used by many classes
@@ -83,10 +80,12 @@ public class DataStorage {
                 Color.red, Color.orange, Color.pink, Color.cyan, Color.blue));
          planetPointSizes = new ArrayList<>(Arrays.asList(5, 5, 5,
                  5, 12, 10, 8, 7));
+         planetEccentricities = new ArrayList<>(Arrays.asList(0.2056, 0.0068, 0.0167,
+                0.0934, 0.0489, 0.0565, 0.0457, 0.0113));
 
 
         /*
-         * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
+         * The direction from the star in which each planet starts its orbit
          */
          planetXCoordinateSection = new ArrayList<>(Arrays.asList(1, 0, -1,
                 0, 1 , 0, -1, 0));
@@ -112,24 +111,20 @@ public class DataStorage {
         satelliteNames = new ArrayList<>(Arrays.asList("ISS", "Moon"));
         satelliteType = new ArrayList<>(Arrays.asList("Satellite", "Moon"));
         satelliteDiameters = new ArrayList<>(Arrays.asList(108.5, 3.4742E6));
-        satelliteDistancefromCentralBody = new ArrayList<>(Arrays.asList(408E3, 384.4E6));
+        satelliteDistancefromCentralBody = new ArrayList<>(Arrays.asList(6.779E6, 384.4E6));     // measured from the planet's center (ISS: Earth's radius + 408 km altitude)
         satelliteMass = new ArrayList<>(Arrays.asList(420E3, 7.34767309E22));
         satelliteColors = new ArrayList<>(Arrays.asList(Color.white, Color.gray));
-        satelliteCentralBody = new ArrayList<>();
         satelliteCentralBodyNames = new ArrayList<>(Arrays.asList("Earth", "Earth"));
         satellitePointSizes = new ArrayList<>(Arrays.asList(3,4));
+        satelliteEccentricities = new ArrayList<>(Arrays.asList(0.0005, 0.0549));
 
         /*
-         * Multiply the x and y coordinate sections by distance in AU to find the true coordinates for each body
+         * The direction from the planet in which each satellite starts its orbit
          */
         satelliteXCoordinateSection = new ArrayList<>(Arrays.asList(0, 1));
         satelliteYCoordinateSection = new ArrayList<>(Arrays.asList(1, 0));
 
-        timeInterval = 1000000;
-        speedControl = 100;
-
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        bodyLimit = availableProcessors + 2;                                  // determines the body limit by adding 2 to the number of cores available in the system
+        timeScale = SolarSystemInterface.defaultTimeScale;
 
     }
     
