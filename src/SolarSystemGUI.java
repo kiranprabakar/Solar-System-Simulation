@@ -14,7 +14,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
     private Frame controlFrame;                                                     // the main frame
 
     private Button addPlanet, addStar, addSatelliteMoon;                            // buttons to add bodies
-    private Button start, stop, slowDown, speedUp;                                  // buttons to alter the simulation
+    private Button start, stop, pause, slowDown, speedUp;                           // buttons to alter the simulation
 
     private Frame addPlanetsFrame;                                                  // the frame to add planets
     private Panel addPlanetsPanel;                                                  // the panel to add the buttons for planets
@@ -54,7 +54,7 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
 
         controlFrame.add(controlPanel, BorderLayout.CENTER);                        // adds the panel
 
-        controlFrame.setPreferredSize(new Dimension(800, 75));        // sets the size
+        controlFrame.setPreferredSize(new Dimension(900, 75));        // sets the size
 
         controlFrame.addWindowListener(new WindowAdapter() {                        // if the user wishes to close the window
             public void windowClosing(WindowEvent e) {
@@ -70,7 +70,11 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (started) {
-                    alert("Simulation is running!");
+                    if (solarSystem.isPaused()) {
+                        togglePause();                                              // Start also resumes a paused simulation
+                    } else {
+                        alert("Simulation is running!");
+                    }
                 } else {
                     if (starAdded) {
                         solarSystem.startSimulation();
@@ -95,11 +99,35 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
                 solarSystem.stopSimulation(started);
                 started = false;                                                    // resets started flag to false
                 starAdded = false;                                                  // resets starAdded flag to false
+                pause.setLabel("Pause");
 
             }
         });
 
         this.controlPanel.add(stop);
+
+        /*
+         * Pauses or resumes the simulation (the space bar on the display does the same)
+         */
+        pause = new Button("Pause");
+        pause.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (started) {
+                    togglePause();
+                } else {
+                    alert("Simulation is not running!");
+                }
+            }
+        });
+
+        solarSystem.getPlot().setOnSpace(() -> {
+            if (started) {
+                togglePause();
+            }
+        });
+
+        this.controlPanel.add(pause);
 
         /*
          * Speeds up the simulation
@@ -468,6 +496,21 @@ public class SolarSystemGUI extends JFrame implements SolarSystemInterface {
         controlFrame.setVisible(true);
 
         alert(intro);                                                       // gives the user information on how to use this program
+    }
+
+    /**
+     * Pauses a running simulation or resumes a paused one, and updates the button to match
+     */
+    private void togglePause() {
+
+        if (solarSystem.isPaused()) {
+            solarSystem.resumeSimulation();
+            pause.setLabel("Pause");
+        } else {
+            solarSystem.pauseSimulation();
+            pause.setLabel("Resume");
+        }
+
     }
 
     /**

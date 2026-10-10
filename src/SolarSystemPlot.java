@@ -20,6 +20,8 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
 
     private int dragX, dragY;                   // where the last mouse drag event happened
 
+    private Runnable onSpace;                   // what to do when the space bar is pressed over the display
+
     private final int[] starfieldX, starfieldY, starfieldBrightness;    // background stars (pixels)
 
     /*
@@ -68,8 +70,18 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
 
         addMouseWheelListener(e -> zoom(e.getX(), e.getY(), Math.pow(1.2, e.getPreciseWheelRotation())));
 
+        setFocusable(true);
+        addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_SPACE && onSpace != null) {
+                    onSpace.run();
+                }
+            }
+        });
+
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
+                requestFocus();                         // so the space bar reaches the display
                 dragX = e.getX();
                 dragY = e.getY();
             }
@@ -96,6 +108,13 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
         redraw();
         plotFrame.setLocation(plotWidth + 20, 20);
         plotFrame.setVisible(true);
+    }
+
+    /**
+     * @param onSpace - what to do when the space bar is pressed over the display
+     */
+    public void setOnSpace(Runnable onSpace) {
+        this.onSpace = onSpace;
     }
 
     /**
@@ -156,9 +175,13 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
             }
         }
 
-        if (radius == 0) {                              // only a star, so show the inner solar system
-            radius = 2 * AU;
+        double starRadius = star.getDiameter() / 2;
+
+        if (radius == 0) {                              // only a star, so show the inner solar system, or room around a giant star
+            radius = Math.max(2 * AU, 3 * starRadius);
         }
+
+        radius = Math.max(radius, 1.5 * starRadius);    // the whole star always fits
 
         centerX = star.getX();
         centerY = star.getY();
@@ -199,7 +222,7 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
      */
     private double offsetScale(SolarSystemBody body) {
 
-        if (!(body instanceof Satellite)) {
+        if (!(body instanceof Satellite) || !(body.getParent() instanceof Planet)) {     // only moons of planets are stretched
             return 1 / metersPerPixel;
         }
 
@@ -287,16 +310,20 @@ public class SolarSystemPlot extends Canvas implements SolarSystemInterface {
 
             if (offsetScale(body) <= 1 / metersPerPixel) {                  // satellites are only named once zoomed in to their true distance
                 g.setColor(new Color(200, 200, 200));
-                g.drawString(body.retName(), (float) (p[0] + size / 2 + 3), (float) (p[1] - size / 2 - 2));
+                double edge = size / 2 * Math.sqrt(0.5);                    // the upper-right edge of the circle, so large bodies keep their label close
+                g.drawString(body.retName(), (float) (p[0] + edge + 3), (float) (p[1] - edge - 2));
             }
         }
 
         drawScaleBar(g);
 
-        g.setColor(Color.white);
-        g.drawString(status, 10, 18);
+        String[] lines = status.split("\n");                             // the first line is the status, any others are events
+        for (int i = 0; i < lines.length; i++) {
+            g.setColor(i == 0 ? Color.white : Color.orange);
+            g.drawString(lines[i], 10, 18 + 16 * i);
+        }
         g.setColor(Color.gray);
-        g.drawString("Scroll: zoom    Drag: pan    Double-click: fit", 10, plotHeight - 10);
+        g.drawString("Scroll: zoom    Drag: pan    Double-click: fit    Space: pause / resume", 10, plotHeight - 10);
 
         repaint();
 

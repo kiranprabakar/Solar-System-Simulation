@@ -33,6 +33,16 @@ public class Satellite extends SolarSystemBody {
     }
 
     /**
+     * Makes the satellite orbit a different body, for example after its planet is destroyed
+     *
+     * @param body - the new central body
+     */
+    public void setBody(SolarSystemBody body) {
+        this.body = body;
+        clearTrail();                                   // the old trail was relative to the old central body
+    }
+
+    /**
      * @return - the central planet
      */
     @Override

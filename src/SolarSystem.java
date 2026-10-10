@@ -17,10 +17,15 @@ public class SolarSystem implements SolarSystemInterface {
     private DataStorage ds;                                 // the data store associated with the solar system
 
     private Timer timer;                                    // advances the simulation once per frame, null when stopped
+    private boolean paused;                                 // whether the simulation has started but is frozen
     private double simTime;                                 // simulated time since the start (seconds)
     private long lastFrameTime;                             // when the previous frame ran (nanoseconds)
     private double achievedTimeScale;                       // simulated seconds per real second over the last frame
     private boolean speedCapped;                            // whether the last frame hit the step limit
+
+    private List<SolarSystemBody[]> collisions = new ArrayList<>();     // pairs of bodies found touching in the last force calculation
+    private String eventMessage;                            // a recent event to show on the display, such as a collision
+    private long eventMessageExpires;                       // when the event message stops being shown (nanoseconds)
 
     /**
      * Creates the solar system
@@ -97,10 +102,17 @@ public class SolarSystem implements SolarSystemInterface {
     }
 
     /**
-     * @return - whether the simulation is running
+     * @return - whether the simulation has started (it may be paused)
      */
     public boolean isRunning() {
         return timer != null;
+    }
+
+    /**
+     * @return - whether the simulation has started but is frozen
+     */
+    public boolean isPaused() {
+        return paused;
     }
 
 
@@ -138,6 +150,9 @@ public class SolarSystem implements SolarSystemInterface {
             throw new SolarSystemException("Planet does not exist!");
         }
 
+        requireOutside(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),               // the orbit cannot pass through the star
+                ds.planetEccentricities.get(index), star);
+
         Planet planet = new Planet(name, ds.planetDiameters.get(index), ds.planetDistancefromCentralBody.get(index),    // creates the planet
                 ds.planetMass.get(index), star, ds.planetColors.get(index), ds.planetPointSizes.get(index));
 
@@ -170,6 +185,9 @@ public class SolarSystem implements SolarSystemInterface {
             alert("The planet has not been added yet!");
             throw new SolarSystemException("The planet has not been added yet!");
         }
+
+        requireOutside(name, ds.satelliteDiameters.get(index), ds.satelliteDistancefromCentralBody.get(index),         // the orbit cannot pass through the planet
+                ds.satelliteEccentricities.get(index), planet);
 
         Satellite satellite = new Satellite(name, ds.satelliteType.get(index), ds.satelliteDiameters.get(index),       // creates a new satellite
                 ds.satelliteDistancefromCentralBody.get(index), ds.satelliteMass.get(index), planet,
@@ -298,6 +316,8 @@ public class SolarSystem implements SolarSystemInterface {
 
         requirePositive(diameter, dist, mass);
 
+        requireOutside(name, diameter, dist, 0, star);                              // the orbit cannot pass through the star
+
         Color color = ds.planetColors.get(similar);                                 // gets the color for the given type
 
         ds.planetNames.add(name);                                                   // updates the data store as necessary
@@ -404,6 +424,8 @@ public class SolarSystem implements SolarSystemInterface {
             throw new SolarSystemException("Planet has not been added yet!");
         }
 
+        requireOutside(name, diameter, dist, 0, planet);                            // the orbit cannot pass through the planet
+
         ds.satelliteNames.add(name);                                               // updates the data store as necessary
         ds.satelliteType.add(type);
         ds.satelliteDiameters.add(diameter);
@@ -424,6 +446,31 @@ public class SolarSystem implements SolarSystemInterface {
                 ds.satelliteXCoordinateSection.get(index), ds.satelliteYCoordinateSection.get(index));
 
         return satellite;
+
+    }
+
+    /**
+     * Makes sure an orbit stays outside the body it goes around, so the orbiting body is not swallowed
+     *
+     * @param name - name of the orbiting body
+     * @param diameter - diameter of the orbiting body
+     * @param distance - semi-major axis of the orbit
+     * @param eccentricity - how elliptical the orbit is
+     * @param parent - the body being orbited
+     * @throws SolarSystemException - if the orbit would touch the parent
+     */
+    private void requireOutside(String name, double diameter, double distance, double eccentricity,
+                                SolarSystemBody parent) throws SolarSystemException {
+
+        double closest = distance * (1 - eccentricity);                             // closest approach (periapsis)
+
+        if (closest <= (parent.getDiameter() + diameter) / 2) {
+            String message = String.format("%s cannot orbit %s: at its closest it would be %s from %s's center, "
+                            + "but %s's radius is %s, so it would be swallowed!", name, parent.retName(),
+                    formatDistance(closest), parent.retName(), parent.retName(), formatDistance(parent.getDiameter() / 2));
+            alert(message);
+            throw new SolarSystemException(message);
+        }
 
     }
 
@@ -555,6 +602,37 @@ public class SolarSystem implements SolarSystemInterface {
         lastFrameTime = System.nanoTime();
         timer = new Timer(frameDelay, e -> advanceFrame());     // runs on the user interface thread, so no other synchronization is needed
         timer.start();
+        paused = false;
+
+    }
+
+    /**
+     * Freezes the simulation, keeping every body where it is
+     */
+    public void pauseSimulation() {
+
+        if (!isRunning() || paused) {
+            return;
+        }
+
+        timer.stop();
+        paused = true;
+        render();
+
+    }
+
+    /**
+     * Continues a paused simulation from where it stopped
+     */
+    public void resumeSimulation() {
+
+        if (!isRunning() || !paused) {
+            return;
+        }
+
+        lastFrameTime = System.nanoTime();                      // the time spent paused is not simulated
+        timer.start();
+        paused = false;
 
     }
 
@@ -585,6 +663,11 @@ public class SolarSystem implements SolarSystemInterface {
         for (int i = 0; i < steps; i++) {
             step(bodies, h);
             simTime += h;
+
+            if (!collisions.isEmpty()) {                                    // merges bodies that hit each other
+                resolveCollisions();
+                bodies = getBodies();
+            }
 
             for (SolarSystemBody body : bodies) {
                 body.recordTrail(simTime);
@@ -653,6 +736,8 @@ public class SolarSystem implements SolarSystemInterface {
             body.clearAcceleration();
         }
 
+        collisions.clear();
+
         for (int i = 0; i < bodies.size(); i++) {
             SolarSystemBody a = bodies.get(i);
 
@@ -662,6 +747,11 @@ public class SolarSystem implements SolarSystemInterface {
                 double dx = b.getX() - a.getX();
                 double dy = b.getY() - a.getY();
                 double distanceSquared = dx * dx + dy * dy;
+                double touching = (a.getDiameter() + b.getDiameter()) / 2;
+
+                if (distanceSquared < touching * touching) {        // the bodies' surfaces overlap
+                    collisions.add(new SolarSystemBody[] {a, b});
+                }
 
                 if (distanceSquared == 0) {             // two bodies in the same spot have no defined direction
                     continue;
@@ -674,6 +764,56 @@ public class SolarSystem implements SolarSystemInterface {
             }
         }
 
+    }
+
+    /**
+     * Merges each pair of colliding bodies: the star, or else the more massive body, absorbs the other
+     */
+    private void resolveCollisions() {
+
+        for (SolarSystemBody[] pair : collisions) {
+
+            List<SolarSystemBody> bodies = getBodies();
+
+            if (!bodies.contains(pair[0]) || !bodies.contains(pair[1])) {      // one of them was already absorbed this step
+                continue;
+            }
+
+            boolean firstWins = pair[0] instanceof Star || (!(pair[1] instanceof Star) && pair[0].getMass() >= pair[1].getMass());
+            SolarSystemBody survivor = firstWins ? pair[0] : pair[1];
+            SolarSystemBody absorbed = firstWins ? pair[1] : pair[0];
+
+            survivor.absorb(absorbed);
+
+            if (absorbed instanceof Planet) {
+                planets.remove(absorbed.retName());
+            } else if (absorbed instanceof Satellite) {
+                satellites.remove(absorbed.retName());
+            }
+
+            for (Satellite satellite : satellites.values()) {          // moons of a destroyed body now orbit whatever absorbed it
+                if (satellite.getParent() == absorbed) {
+                    satellite.setBody(survivor);
+                }
+            }
+
+            showEvent(absorbed.retName() + (survivor instanceof Star ? " was swallowed by " : " crashed into ") + survivor.retName() + "!");
+
+        }
+
+        collisions.clear();
+        computeAccelerations(getBodies());              // the absorbed bodies no longer pull on anything
+
+    }
+
+    /**
+     * Shows a message on the display for a few seconds
+     *
+     * @param message - the message to show
+     */
+    private void showEvent(String message) {
+        eventMessage = message;
+        eventMessageExpires = System.nanoTime() + 6_000_000_000L;
     }
 
     /**
@@ -708,7 +848,9 @@ public class SolarSystem implements SolarSystemInterface {
 
         String speed;
 
-        if (isRunning()) {
+        if (paused) {
+            speed = "PAUSED (1 s = " + formatDuration(ds.timeScale) + " when resumed)";
+        } else if (isRunning()) {
             speed = "1 s = " + formatDuration(achievedTimeScale) + (speedCapped ? " (max for these bodies)" : "");
         } else {
             speed = "1 s = " + formatDuration(ds.timeScale) + " (not running)";
@@ -716,7 +858,25 @@ public class SolarSystem implements SolarSystemInterface {
 
         String status = String.format("Time: %.1f days (%.2f years)   |   %s", simTime / 86400, simTime / YEAR, speed);
 
+        if (eventMessage != null && System.nanoTime() < eventMessageExpires) {
+            status += "\n" + eventMessage;
+        }
+
         plot.render(getBodies(), status);
+
+    }
+
+    /**
+     * @param meters - a distance
+     * @return - the distance in readable units
+     */
+    private static String formatDistance(double meters) {
+
+        if (meters >= 0.01 * AU) {
+            return String.format("%.2f AU", meters / AU);
+        } else {
+            return String.format("%,.0f km", meters / 1000);
+        }
 
     }
 
@@ -752,6 +912,8 @@ public class SolarSystem implements SolarSystemInterface {
             timer = null;
         }
 
+        paused = false;
+
         star = null;                                        // gets rid of the star
 
         planets = new LinkedHashMap<>();                    // gets rid of the planets
@@ -761,6 +923,8 @@ public class SolarSystem implements SolarSystemInterface {
         ds = new DataStorage();
 
         simTime = 0;
+        eventMessage = null;
+        collisions.clear();
 
         plot.resetView();
         render();                                           // clears the display

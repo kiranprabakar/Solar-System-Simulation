@@ -134,6 +134,30 @@ public class SolarSystemBody implements SolarSystemInterface {
     }
 
     /**
+     * Merges another body into this one after a collision, conserving momentum
+     *
+     * @param other - the body being absorbed
+     */
+    public void absorb(SolarSystemBody other) {
+
+        double total = mass + other.getMass();
+
+        vx = (mass * vx + other.getMass() * other.getVx()) / total;
+        vy = (mass * vy + other.getMass() * other.getVy()) / total;
+        mass = total;
+
+    }
+
+    /**
+     * Forgets the stored trail, for example when the central body changes
+     */
+    public void clearTrail() {
+        trailCount = 0;
+        trailHead = 0;
+        nextTrailTime = 0;
+    }
+
+    /**
      * Records the current position relative to the central body if it is time for a new trail point
      *
      * @param simTime - the current simulation time (seconds)

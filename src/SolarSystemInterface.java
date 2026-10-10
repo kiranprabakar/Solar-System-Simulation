@@ -42,6 +42,7 @@ public interface SolarSystemInterface {
             + "\n" + "To begin, create a star and add bodies as you wish until the limit is reached.\n"
             + "A set of default bodies is provided if desired but custom bodies can be created as the user wishes.\n"
             + "To start the simulation, click on \"Start\"\n"
+            + "To pause or resume the simulation, click on \"Pause\" or press the space bar on the display\n"
             + "To stop or clear the simulation, click on \"Stop / Clear\"\n"
             + "To speed up or slow down the simulation, click on \"Speed up\" or \"Slow down\"\n"
             + "\n" + "Every body pulls on every other body with real Newtonian gravity, and distances are drawn to true scale.\n"
